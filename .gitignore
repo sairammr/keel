@@ -1,0 +1,28 @@
+# deps
+node_modules/
+**/node_modules/
+
+# builds
+dist/
+out/
+.next/
+cache/
+broadcast/
+
+# env & secrets — NEVER commit policy params or salts
+.env
+.env.*
+!.env.example
+secrets.yaml
+!secrets.example.yaml
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/lib/
+
+# os
+.DS_Store
+
+# logs
+*.log

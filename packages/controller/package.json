@@ -1,0 +1,19 @@
+{
+  "name": "keel-controller",
+  "type": "module",
+  "module": "ESM",
+  "version": "0.1.0",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.5.0",
+    "@noble/curves": "^1.6.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.2"
+  }
+}
