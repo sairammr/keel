@@ -1,0 +1,8 @@
+{
+  "name": "keel-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "bash e2e.sh"
+  }
+}

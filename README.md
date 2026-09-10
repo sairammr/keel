@@ -62,12 +62,24 @@ The `/verify` page in the app does all three (on-chain mode against deployed add
 
 ```bash
 bun install                         # workspace install
-bun test                            # controller + scenario + hunter unit tests
-(cd contracts && forge test -vv)    # Solidity tests
+bun test                            # controller + scenario + hunter + workflow unit tests (53)
+bun run contracts:test              # Solidity tests (9)
+bun run e2e                         # full loop on a local Anvil chain (deploy→join→commit→crash→defend→receipt→reveal)
 bun run tune                        # grid search; prints winning policy + starter baselines
 bun run replay --vs starter         # text side-by-side replay
 (cd app && bun run dev)             # dashboard on :3000
 ```
+
+### End-to-end proof (real chain)
+
+`bun run e2e` spins a local Anvil (`chainId 11155111`), deploys `ChallengeLending` + `PolicyCommit` + `Receipts`, and drives the whole lifecycle with the **real** controller. It asserts, among others:
+
+- `join` → position `(500, 700000, hf 111)`; commit block **precedes** the `ChallengeStarted` block.
+- A price crash past the liquidation line: an **undefended** position hits `hf100 = 99 / 95 / 93` (liquidated), while the controller-defended position **survives** at `hf 117 / 113 / 110`.
+- On-chain `Receipts.digestOf` equals the off-chain `receiptDigest` (EIP-712 domain + typehash agree), and the on-chain committed `signer` equals the off-chain `recoverReceiptSigner`.
+- `reveal(policyBytes, salt)` succeeds; a wrong-salt reveal reverts.
+
+Ends with `E2E PASSED`.
 
 CRE workflow (simulation needs no deploy approval):
 ```bash
