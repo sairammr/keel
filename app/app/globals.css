@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* KEEL — dark terminal-fintech design system. Bloomberg meets a proof explorer. */
+@theme {
+  --color-bg: #07090c;
+  --color-panel: #0c1015;
+  --color-panel2: #10161d;
+  --color-line: #1b232d;
+  --color-line2: #29343f;
+  --color-ink: #e8edf2;
+  --color-muted: #8a97a6;
+  --color-faint: #5b6673;
+
+  --color-keel: #2ee6a6; /* safe / verifiable — teal-green */
+  --color-keel-dim: #14342a; /* keel, dimmed fill */
+  --color-danger: #ff5c4d; /* starter / danger — red */
+  --color-warn: #f5a623; /* amber */
+  --color-hunt: #7c6cff; /* adversary violet */
+
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+/* faint grid backdrop */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.14;
+  mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 100%);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+
+.hairline {
+  border-color: var(--color-line);
+}
+
+/* thin uppercase eyebrow labels */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 0;
+  background: currentColor;
+  transition: width 0.18s ease;
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+.live-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-keel) 35%, transparent);
+}
+
+/* scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line2) transparent;
+}

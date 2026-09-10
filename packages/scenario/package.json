@@ -1,0 +1,14 @@
+{
+  "name": "keel-scenario",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "tune": "bun run src/tune.ts",
+    "replay": "bun run src/replay.ts"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.2"
+  }
+}
