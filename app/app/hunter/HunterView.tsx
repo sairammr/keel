@@ -1,27 +1,59 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Posterior, AttackResult } from "@/lib/hunter";
+import type { Posterior, AttackResult, ChainIntel } from "@/lib/hunter";
 import { HeatStrip } from "@/components/HeatStrip";
 
 export function HunterView({
   intel,
   attack,
+  chain,
   jitterBp,
   markets,
 }: {
   intel: { keel: Posterior; starter: Posterior };
   attack: AttackResult;
+  chain: ChainIntel | null;
   jitterBp: number;
   markets: number;
 }) {
+  const [source, setSource] = useState<"engine" | "chain">("engine");
+  const onChain = source === "chain" && chain != null;
+  const keelPost = onChain ? chain!.keel : intel.keel;
+  const keelMarkets = onChain ? chain!.rounds : markets;
+  const keelSub = onChain
+    ? `real Sepolia logs · ${chain!.rounds} levels, ${chain!.actions} actions`
+    : "sealed base + per-round jitter";
+
   return (
     <div className="flex flex-col gap-6">
+      {/* source toggle */}
+      <div className="panel p-3 flex flex-wrap items-center gap-3">
+        <span className="eyebrow">inference source</span>
+        <div className="flex">
+          <Toggle active={source === "engine"} onClick={() => setSource("engine")}>
+            engine suite ({markets} markets)
+          </Toggle>
+          <Toggle
+            active={source === "chain"}
+            disabled={!chain}
+            onClick={() => chain && setSource("chain")}
+          >
+            {chain ? `chain · ${chain.participant.slice(0, 6)}…${chain.participant.slice(-4)}` : "chain (unavailable)"}
+          </Toggle>
+        </div>
+        <span className="text-[12px] text-[color:var(--color-muted)]">
+          {onChain
+            ? "Keel's M1/M2 computed from its real on-chain (HF, acted?) log stream, reconstructed by packages/verifier."
+            : `Aggregated across ${markets} engine markets (real controller, ContractMirror).`}
+        </span>
+      </div>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <IntelPanel
           tone="danger"
           title="STARTER"
-          sub="fixed threshold · no secret"
+          sub={onChain ? "fixed threshold · engine baseline (no starter on-chain)" : "fixed threshold · no secret"}
           post={intel.starter}
           jitterBp={jitterBp}
           markets={markets}
@@ -29,23 +61,50 @@ export function HunterView({
         <IntelPanel
           tone="keel"
           title="KEEL"
-          sub="sealed base + per-round jitter"
-          post={intel.keel}
+          sub={keelSub}
+          post={keelPost}
           jitterBp={jitterBp}
-          markets={markets}
+          markets={keelMarkets}
         />
       </section>
 
       <AttackConsole attack={attack} />
 
       <div className="eyebrow text-center">
-        across {markets} markets the starter&apos;s 90% band is{" "}
+        {onChain ? "on Keel's real logs" : `across ${markets} markets`} the starter&apos;s 90% band is{" "}
         <span className="text-[color:var(--color-danger)]">{intel.starter.widthBp} bp</span>{" "}
         — Keel&apos;s is{" "}
-        <span className="text-[color:var(--color-keel)]">{intel.keel.widthBp} bp</span>,
+        <span className="text-[color:var(--color-keel)]">{keelPost.widthBp} bp</span>,
         floored by the {jitterBp} bp jitter it can never see under
       </div>
     </div>
+  );
+}
+
+function Toggle({
+  active,
+  disabled,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="mono text-[12px] px-3 py-1.5 border hairline disabled:opacity-40"
+      style={{
+        borderColor: active ? "var(--color-keel)" : undefined,
+        color: active ? "var(--color-keel)" : "var(--color-muted)",
+        background: active ? "var(--color-panel2)" : "transparent",
+      }}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -145,10 +204,14 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
   const shown = attack.taps.slice(0, Math.max(1, i));
   const forced = shown.filter((t) => t.acted).length;
   const burned = shown.reduce(
-    (a, t) => a + (t.acted ? (t.amountVeth * t.priceUsd) : 0),
+    (a, t) => a + (t.acted && t.kind === "deposit" ? t.amountVeth * t.priceUsd : 0),
     0,
   );
-  const reserveNow = shown[shown.length - 1]?.reserveAfter ?? attack.reserveStart;
+  const debtBurned = shown.reduce(
+    (a, t) => a + (t.acted && t.kind === "repay" ? t.amountVeth : 0),
+    0,
+  );
+  const deepest = Math.min(...shown.map((t) => t.priceUsd));
   const scale = x1000 ? 1000 : 1;
   const money = (v: number) => "$" + Math.round(v * scale).toLocaleString("en-US");
 
@@ -194,14 +257,11 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Counter label="capital burned" value={money(burned)} tone="hunt" />
-        <Counter label="forced actions" value={`${forced} / ${shown.length} taps`} />
-        <Counter
-          label="reserve"
-          value={`${reserveNow.toFixed(2)} / ${attack.reserveStart.toFixed(2)} vETH`}
-          tone="keel"
-        />
+      <div className="grid gap-3 sm:grid-cols-4">
+        <Counter label="forced spends" value={`${forced} / ${shown.length} taps`} tone="hunt" />
+        <Counter label="capital drained" value={money(burned)} tone="hunt" />
+        <Counter label="debt-time burned" value={money(debtBurned)} />
+        <Counter label="deepest push" value={`$${Math.round(deepest)}`} tone="keel" />
       </div>
 
       {/* reserve trajectory + tap ladder */}
@@ -215,7 +275,7 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
               <th className="py-1.5 pr-3">price</th>
               <th className="py-1.5 pr-3">HF</th>
               <th className="py-1.5 pr-3">forced?</th>
-              <th className="py-1.5 pr-3">deposit</th>
+              <th className="py-1.5 pr-3">spend</th>
               <th className="py-1.5 pr-3 text-right">reserve after</th>
             </tr>
           </thead>
@@ -233,7 +293,7 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
                   )}
                 </td>
                 <td className="py-1.5 pr-3">
-                  {t.acted ? `${t.amountVeth.toFixed(2)} vETH` : "—"}
+                  {t.acted ? `${t.amountVeth.toFixed(2)} ${t.kind === "repay" ? "vUSD" : "vETH"}` : "—"}
                 </td>
                 <td className="py-1.5 pr-3 text-right">{t.reserveAfter.toFixed(2)}</td>
               </tr>
@@ -243,10 +303,12 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
       </div>
 
       <p className="eyebrow">
-        Keel restores clear of its arm in one move per level, so after the first tap the
-        attacker&apos;s pushes land on a position already above trigger — the reserve stops
-        bleeding. ×1000: {money(attack.capitalBurnedUsd)} spent to drain{" "}
-        {(attack.scaledReserveDrained / 1000).toFixed(2)}k vETH of framing value.
+        The fixed-threshold bot falls at a shallow, discovered trigger — cheap to milk. To
+        force Keel the attacker must crash price to ${attack.deepestPushUsd} (its M2 floor),
+        and Keel&apos;s decisive restore de-levers: it burns debt-time score instead of
+        silently bleeding a reserve, and each de-lever makes the next push cost more. ×1000:
+        {" "}{money(attack.capitalBurnedUsd)} capital + {money(attack.debtForfeitedUsd)} debt-time
+        to move it.
       </p>
     </section>
   );

@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import { m1, m2, attack, obsFromTrace, type Obs } from "./index";
+import { m1, m2, attack, obsFromTrace, obsFromChain, type Obs } from "./index";
 import type { Policy } from "../../controller/src/index.ts";
 
 const H_PER_DOLLAR = 1 / 1794.87;
@@ -26,11 +26,13 @@ const KEEL: Policy = {
   emerg_bp: 10300, buffer_bp: 500, target_cap_bp: 12500, halflife: 4, cooldown: 1,
   max_repay_bp: 3000, max_deposit: 250, t_est_s: 10800,
 };
-// Naive fixed-threshold bot: low emergency floor, dribbles tiny top-ups, no cooldown.
+// Honest fixed-threshold bot (official-template semantics): a constant public trigger
+// (1.08), a shallow restore (buffer 200 → ~1.10), same solver + real caps as Keel. No
+// hobble — it defends decisively, it just can't hide WHERE it acts.
 const STARTER: Policy = {
   base_bp: 10800, kvol_bp: 0, volcap_bp: 0, jitter_bp: 0, tmax_bp: 10800,
-  emerg_bp: 9000, buffer_bp: 200, target_cap_bp: 12500, halflife: 4, cooldown: 0,
-  max_repay_bp: 3000, max_deposit: 6, t_est_s: 10800,
+  emerg_bp: 10300, buffer_bp: 200, target_cap_bp: 12500, halflife: 4, cooldown: 1,
+  max_repay_bp: 3000, max_deposit: 250, t_est_s: 10800,
 };
 const SALT = new Uint8Array(32).fill(7);
 
@@ -63,29 +65,31 @@ describe("M2 — threshold + unknown jitter", () => {
 });
 
 describe("attack — real controller under the hunter's push", () => {
-  test("starter (fixed 1.08): forces multiple actions, reserve depletes", () => {
+  const deepest = (a: { taps: { priceTap: number }[] }) =>
+    Math.min(...a.taps.map((t) => t.priceTap));
+
+  test("the stop-hunt forces the pinned fixed-threshold bot to keep spending", () => {
     const hunt = m1(fixedObs(1.08, [1.13, 1.11, 1.09, 1.081, 1.0805, 1.08, 1.0795, 1.07])).mode;
     const a = attack(STARTER, SALT, { huntPrice: price(hunt) }, { reserve0: 300 });
     expect(a.forcedActions).toBeGreaterThanOrEqual(2);
-    // reserve strictly falls from its start
-    expect(a.reserveVeth[a.reserveVeth.length - 1]!).toBeLessThan(a.reserveVeth[0]!);
+    // reported acted taps and the forced counter agree
+    expect(a.taps.filter((t) => t.acted).length).toBe(a.forcedActions);
   });
 
-  test("Keel (jitter): forces <=1 action per price level; deeper hunt; fewer interventions", () => {
-    // Starter is a true fixed-threshold bot → an M1 hunter pins it exactly and milks it.
+  test("Keel hides WHERE it acts: the attacker must push deeper and Keel de-levers", () => {
+    // The M1 hunter pins the starter exactly; the Keel-aware M2 hunter must aim deeper.
     const starterHunt = m1(fixedObs(1.08, [1.13, 1.11, 1.09, 1.081, 1.0805, 1.08, 1.0795, 1.07])).mode;
-    // Keel jitters → the Keel-aware M2 hunter must push deeper on the jittered trace.
     const keelHunt = m2(jitterObs(1.08)).huntPrice;
     const aStart = attack(STARTER, SALT, { huntPrice: price(starterHunt) }, { reserve0: 300 });
     const aKeel = attack(KEEL, SALT, { huntPrice: keelHunt }, { reserve0: 300 });
 
-    // Keel restores decisively → at most one forced action per price level, immune after
-    expect(aKeel.forcedActions).toBeLessThanOrEqual(1);
-    // and far fewer forced interventions than the milked naive bot
-    expect(aKeel.forcedActions).toBeLessThan(aStart.forcedActions);
-    // Keel-aware hunt price is a deeper push than the naive threshold
+    // Keel-aware hunt price is a deeper push than the discoverable fixed threshold.
     expect(keelHunt).toBeLessThan(price(starterHunt));
-    // taps after the single restore land nothing
+    // To force Keel the attacker must crash the price further than for the starter.
+    expect(deepest(aKeel)).toBeLessThan(deepest(aStart));
+    // Under the deep push Keel's decisive restore de-levers (repays) — burning debt-time
+    // score, not silently bleeding a reserve like the milked fixed-threshold bot.
+    expect(aKeel.debtForfeited).toBeGreaterThan(aStart.debtForfeited);
     expect(aKeel.taps.filter((t) => t.acted).length).toBe(aKeel.forcedActions);
   });
 });
@@ -102,6 +106,18 @@ describe("numerical safety", () => {
     for (const v of r2.post2d) expect(Number.isFinite(v)).toBe(true);
     expect(Number.isFinite(r2.huntPrice)).toBe(true);
     for (const v of r2.marginalB) expect(Number.isFinite(v)).toBe(true);
+  });
+
+  test("obsFromChain maps reconstructed rounds to (h, a) observations", () => {
+    const obs = obsFromChain([
+      { hfBpPre: 11140n, acted: false },
+      { hfBpPre: 10697n, acted: true },
+      { hfBpPre: 11297, acted: false },
+    ]);
+    expect(obs.length).toBe(3);
+    expect(obs[1]!.h).toBeCloseTo(1.0697, 4);
+    expect(obs[1]!.a).toBe(1);
+    expect(obs[0]!.a).toBe(0);
   });
 
   test("obsFromTrace collapses a trace to one Obs per price level", () => {

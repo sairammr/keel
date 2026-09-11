@@ -24,3 +24,13 @@ export function obsFromTrace(ticks: Tick[]): Obs[] {
   }
   return [...byPrice.values()];
 }
+
+/**
+ * Observations from a reconstructed on-chain run (packages/verifier's per-round table).
+ * Each round is already one price level: h = pre-action HF, a = 1 iff an action landed.
+ * Kept structurally decoupled from the verifier (takes the minimal {hfBpPre, acted} shape)
+ * so the hunter package has no chain/RPC dependency.
+ */
+export function obsFromChain(rounds: { hfBpPre: bigint | number; acted: boolean }[]): Obs[] {
+  return rounds.map((r) => ({ h: Number(r.hfBpPre) / 10000, a: (r.acted ? 1 : 0) as 0 | 1 }));
+}

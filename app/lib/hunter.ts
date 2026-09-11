@@ -9,9 +9,11 @@ import {
   KEEL,
   type Scenario as RealScenario,
 } from "keel-scenario";
-import { m1, m2, obsFromTrace, attack as realAttack, scaleEconomics } from "keel-hunter";
+import { m1, m2, obsFromTrace, obsFromChain, attack as realAttack, scaleEconomics } from "keel-hunter";
+import { reconstruct } from "keel-verifier";
 import type { Policy } from "keel-controller";
 import { STARTER } from "./policy";
+import { DEPLOYMENT } from "./deployment";
 
 export interface Posterior {
   grid: number[]; // trigger grid, bp
@@ -94,6 +96,42 @@ export function crossMarketIntel(
   return { keel: infer(kObs), starter: infer(sObs) };
 }
 
+// Real on-chain intel: reconstruct a participant's run from Sepolia events and run the
+// same M1/M2 inference over its actual (HF, acted?) observations. No engine — the
+// observations are the real log stream the verifier rebuilds.
+export interface ChainIntel {
+  keel: Posterior;
+  rounds: number;
+  actions: number;
+  participant: string;
+  fromBlock: string;
+}
+
+export async function chainIntel(
+  participant: `0x${string}` = DEPLOYMENT.participant,
+): Promise<ChainIntel | null> {
+  try {
+    const run = await reconstruct({
+      rpcUrl: DEPLOYMENT.rpc,
+      lending: DEPLOYMENT.lending,
+      policyCommit: DEPLOYMENT.policyCommit,
+      receipts: DEPLOYMENT.receipts,
+      participant,
+      fromBlock: DEPLOYMENT.fromBlock,
+    });
+    const obs = obsFromChain(run.rounds);
+    return {
+      keel: infer(obs),
+      rounds: run.rounds.length,
+      actions: run.rounds.filter((r) => r.acted).length,
+      participant,
+      fromBlock: DEPLOYMENT.fromBlock.toString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
 // --- Attack (real controller-driven tap simulation) ---
 export interface AttackTap {
   round: number;
@@ -106,13 +144,15 @@ export interface AttackTap {
 }
 export interface AttackResult {
   taps: AttackTap[];
-  capitalBurnedUsd: number;
+  capitalBurnedUsd: number; // $ of vETH deposited (reserve spent)
+  debtForfeitedUsd: number; // $ of debt repaid under attack (debt-time score burned)
   reserveVethTrace: number[];
   forcedActions: number;
   huntPriceUsd: number;
+  deepestPushUsd: number; // how far the attacker had to crash price
   reserveStart: number;
   scaledBurnedUsd: number; // ×1000 economic framing
-  scaledReserveDrained: number;
+  scaledDebtUsd: number;
 }
 
 export function runAttack(
@@ -123,6 +163,7 @@ export function runAttack(
 ): AttackResult {
   const r = realAttack(policy, salt, { huntPrice: huntPriceUsd }, { reserve0, maxTaps: 8 });
   const scaled = scaleEconomics(r);
+  const deepest = r.taps.length ? Math.min(...r.taps.map((t) => t.priceTap)) : huntPriceUsd;
   return {
     taps: r.taps.map((t) => ({
       round: t.round,
@@ -134,11 +175,13 @@ export function runAttack(
       reserveAfter: Math.round(t.reserveAfter * 1000) / 1000,
     })),
     capitalBurnedUsd: Math.round(r.capitalBurned * 100) / 100,
+    debtForfeitedUsd: Math.round(r.debtForfeited * 100) / 100,
     reserveVethTrace: r.reserveVeth,
     forcedActions: r.forcedActions,
     huntPriceUsd: Math.round(huntPriceUsd),
+    deepestPushUsd: Math.round(deepest),
     reserveStart: reserve0 / 100,
     scaledBurnedUsd: Math.round(scaled.scaled.capitalBurned),
-    scaledReserveDrained: Math.round(scaled.scaled.reserveDrained),
+    scaledDebtUsd: Math.round(scaled.scaled.debtForfeited),
   };
 }
