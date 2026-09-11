@@ -19,6 +19,7 @@ import {
   demoSaltBytes,
 } from "@/lib/policy";
 import { byId } from "@/lib/scenarios";
+import LiveOnChain from "@/components/LiveOnChain";
 
 interface SignedReceipt {
   receipt: Receipt;
@@ -97,15 +98,6 @@ export default function VerifyPage() {
     };
   }, [actedTicks, commit]);
 
-  // On-chain config (NEXT_PUBLIC_* only reach the client).
-  const onchain = {
-    policyCommit: process.env.NEXT_PUBLIC_POLICYCOMMIT_ADDR,
-    receipts: process.env.NEXT_PUBLIC_RECEIPTS_ADDR,
-    lending: process.env.NEXT_PUBLIC_LENDING_ADDR,
-    rpc: process.env.NEXT_PUBLIC_RPC_URL,
-  };
-  const onchainReady = !!(onchain.policyCommit && onchain.rpc);
-
   const allOk = signed?.every((s) => s.ok) ?? false;
   const revealCommit = commitmentOf(
     KEEL_POLICY,
@@ -129,26 +121,18 @@ export default function VerifyPage() {
         </p>
       </header>
 
-      {/* on-chain banner */}
-      <div
-        className={`panel p-3 flex items-center gap-3 ${
-          onchainReady ? "" : "border-[color:var(--color-warn)]"
-        }`}
-        style={onchainReady ? {} : { borderColor: "var(--color-warn)" }}
-      >
-        <span
-          className="mono text-[10px] px-2 py-1 border"
-          style={{
-            borderColor: onchainReady ? "var(--color-keel)" : "var(--color-warn)",
-            color: onchainReady ? "var(--color-keel)" : "var(--color-warn)",
-          }}
-        >
-          {onchainReady ? "ON-CHAIN" : "LOCAL PROOF"}
+      {/* live on-chain read from the deployed Sepolia staging contracts */}
+      <LiveOnChain />
+
+      {/* the sections below are an in-browser DEMO: identical, real cryptography (keccak, EIP-712,
+          ecrecover) run locally over engine-generated data, so the loop is inspectable without a wallet. */}
+      <div className="panel p-3 flex items-center gap-3" style={{ borderColor: "var(--color-warn)" }}>
+        <span className="mono text-[10px] px-2 py-1 border" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)" }}>
+          DEMO (in-browser)
         </span>
         <span className="text-[13px] text-[color:var(--color-muted)]">
-          {onchainReady
-            ? `Reading PolicyCommit ${short(onchain.policyCommit!)} via ${onchain.rpc}.`
-            : "Contracts not deployed (NEXT_PUBLIC_POLICYCOMMIT_ADDR unset) — verifying against a local proof with identical, real cryptography."}
+          The three sections below run the same crypto locally over engine-generated data (demo salt).
+          The on-chain panel above is the real deployment.
         </span>
       </div>
 
