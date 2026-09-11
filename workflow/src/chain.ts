@@ -6,11 +6,12 @@ import {
   decodeEventLog,
   numberToHex,
   fromHex,
+  stringToHex,
   type Address,
   type Hex,
 } from "viem";
 import type { PrivateKeyAccount } from "viem/accounts";
-import { HTTPClient, type TeeRuntime } from "@chainlink/cre-sdk";
+import { cre, hexToBase64, type TeeRuntime } from "@chainlink/cre-sdk";
 import type { Config } from "./config.ts";
 import { roundOfBlock, pricesFrom } from "./plan.ts";
 
@@ -100,7 +101,7 @@ type Call = { method: string; params: unknown[] };
 
 /** Minimal HTTP surface we use — the SDK's HTTPClient satisfies it; tests inject a counting fake. */
 export interface HttpLike {
-  sendRequest(rt: unknown, req: { url: string; method: string; headers: Record<string, string>; body: string }): { result(): { body: Uint8Array } };
+  sendRequest(rt: unknown, req: { url: string; method: string; multiHeaders: Record<string, { values: string[] }>; body: string }): { result(): { statusCode?: number; body: Uint8Array } };
 }
 
 /** All chain I/O as raw JSON-RPC over the enclave HTTP capability, batched to fit CRE's 5-call quota. */
@@ -113,7 +114,7 @@ export class ChainReader {
     private readonly cfg: Config,
     http?: HttpLike,
   ) {
-    this.http = http ?? (new HTTPClient() as unknown as HttpLike);
+    this.http = http ?? (new cre.capabilities.HTTPClient() as unknown as HttpLike);
   }
 
   /** One HTTP request carrying a JSON-RPC batch; results matched by id (never by position). */
@@ -123,10 +124,11 @@ export class ChainReader {
       .sendRequest(this.rt, {
         url: this.rpcUrl,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: Buffer.from(payload).toString("base64"),
+        multiHeaders: { "Content-Type": { values: ["application/json"] } },
+        body: hexToBase64(stringToHex(payload)), // WASM-safe base64 (no Node Buffer)
       })
       .result();
+    if (resp.statusCode !== undefined && resp.statusCode >= 400) throw new Error(`rpc http ${resp.statusCode}`);
     const bytes = resp.body as Uint8Array;
     if (bytes.length > MAX_RESP_BYTES) throw new Error(`rpc batch response ${bytes.length}B exceeds ${MAX_RESP_BYTES}B cap`);
     const arr = JSON.parse(new TextDecoder().decode(bytes)) as Array<{ id: number; result?: unknown; error?: { message: string } }>;

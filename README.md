@@ -18,9 +18,10 @@ Completion is tracked in `PLAN.md`. As of this commit:
 - ✅ **P1.3 reproducible `controllerCodeHash`** — keccak of the source tree (not a build artifact); `bun run codehash --check`.
 - ✅ **P1.4 faithful local `ChallengeLending`** — the local contract is a verbatim copy of the official 0.8.36 source (`contracts/src/official/`), **proven byte-for-byte** to the deployed contract via `bun run script/fidelity.ts` (metadata stripped). The TS mirror matches its exact integer maths (liquidation rounding, bounded debt-time, `burnFrom`, repeat liquidation, `borrow`, `minCollateral`), cross-checked over 200 random sequences against a real Anvil deployment. The on-chain deposit path is exercised in the E2E (funded by the 5.00 spare vETH `join()` mints).
 - ⚠️ **Phase 2 evaluation** — the engine records post-action HF, so Hunter/verify numbers are not yet trustworthy (P2.1).
-- ⚠️ **Phase 3 CRE** — the handler exceeds the 5-HTTP-call quota and has not run under the CRE runtime (P3.2/P3.3).
+- ✅ **P3.1/P3.2 CRE runtime** — the workflow is a real `cre init`-shaped project (`project.yaml`, `workflow/workflow.yaml`, zod config, packed secrets, WASM-safe handler). `cre workflow simulate workflow --target staging-settings` compiles to WASM, runs the confidential `handlerInTee`, does the ≤5-call batched read against Sepolia, and returns a status. Quota-compliant (1 read + 1 send ≤ 5 HTTP calls).
+- ✅ **Live on Sepolia (staging)** — faithful `ChallengeLending` + `PolicyCommit`/`Receipts` deployed; a full crash scenario ran on-chain: commit-before-start, real defends + EIP-712 receipts, reveal (see `docs/deployment/addresses.md`).
+- ⚠️ **Deployment to the DON** — needs CRE Early Access (`Deploy Access: Not enabled`); simulation works without it.
 - ⚠️ **Phase 4 app** — `/verify` uses engine-generated demo data, not on-chain reads.
-- ⬜ **Nothing is deployed on Sepolia yet**; no commitment or receipts exist on-chain.
 
 ---
 

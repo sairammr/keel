@@ -1,0 +1,11 @@
+# CRE project settings. Generated to match `cre init` (hello-confidential-workflows-ts) layout.
+# The KEEL workflow drives its own txs via raw eth_sendRawTransaction over the enclave HTTP client,
+# so the RPC here is the public Sepolia endpoint the handler also falls back to.
+staging-settings:
+    rpcs:
+        - chain-name: ethereum-testnet-sepolia
+          url: https://ethereum-sepolia-rpc.publicnode.com
+production-settings:
+    rpcs:
+        - chain-name: ethereum-testnet-sepolia
+          url: https://ethereum-sepolia-rpc.publicnode.com

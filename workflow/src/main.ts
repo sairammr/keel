@@ -1,13 +1,6 @@
 import { bytesToHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import {
-  cre,
-  handlerInTee,
-  CronCapability,
-  Runner,
-  type TeeRuntime,
-  type CronPayload,
-} from "@chainlink/cre-sdk";
+import { cre, Runner, type TeeRuntime } from "@chainlink/cre-sdk";
 import {
   decide,
   solve,
@@ -17,9 +10,9 @@ import {
   P0,
   type Receipt,
 } from "../../packages/controller/src/index.ts";
-import type { Config } from "./config.ts";
+import { configSchema, type Config } from "./config.ts";
 import { ChainReader, type Tx } from "./chain.ts";
-import { parsePolicy, ALL_SECRET_IDS, type SecretMap } from "./policy.ts";
+import { parsePolicy, POLICY_SECRET_ID, SALT_SECRET_ID, RPC_SECRET_ID, KEY_SECRET_ID, type SecretMap } from "./policy.ts";
 import { orderLegs, planNonces } from "./plan.ts";
 
 const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -37,11 +30,17 @@ const ACTION_CODE = { repay: 1, deposit: 2, withdraw: 3, borrow: 4 } as const;
  * batched send — ≤ 2 HTTP requests per tick (CRE quota is 5). Returns ONLY a one-word status;
  * never logs a policy value, salt, or HF threshold.
  */
-async function onCronTrigger(rt: TeeRuntime<Config>, _t: CronPayload): Promise<string> {
+async function onCronTrigger(rt: TeeRuntime<Config>): Promise<string> {
   const cfg = rt.config;
 
-  // 1. secrets → policy, salt, key (4 secrets, packed policy — within the 5-secret quota)
-  const secrets = rt.getSecrets(ALL_SECRET_IDS.map((id) => ({ id }))).result() as SecretMap;
+  // 1. secrets → policy, salt, key. getSecret is singular + synchronous (≤ 5 fetches/execution).
+  const get = (id: string): string => rt.getSecret({ id }).result().value;
+  const secrets: SecretMap = {
+    [POLICY_SECRET_ID]: { value: get(POLICY_SECRET_ID) },
+    [SALT_SECRET_ID]: { value: get(SALT_SECRET_ID) },
+    [RPC_SECRET_ID]: { value: get(RPC_SECRET_ID) },
+    [KEY_SECRET_ID]: { value: get(KEY_SECRET_ID) },
+  };
   const { policy: pol, salt, rpcUrl, privateKey } = parsePolicy(secrets);
   const acct = privateKeyToAccount(privateKey);
   const saltHex = bytesToHex(salt);
@@ -141,16 +140,21 @@ async function onCronTrigger(rt: TeeRuntime<Config>, _t: CronPayload): Promise<s
   return dec.emergency ? "EMERGENCY" : "DEFENDED";
 }
 
-// R2 fallback: KEEL_TEE=0 registers the handler NON-confidentially (secrets exposed to the DON).
+// config.tee=true → confidential TEE handler; false → non-confidential DON handler (R2 fallback
+// when Confidential Workflows beta access is not yet granted). AWS Nitro us-west-2 is the only
+// registered TEE type/region.
 const initWorkflow = (config: Config) => {
-  const trigger = new CronCapability().trigger({ schedule: config.schedule });
-  const useTee = process.env.KEEL_TEE !== "0";
-  return [useTee ? handlerInTee(trigger, onCronTrigger, {}) : cre.handler(trigger, onCronTrigger)];
+  const trigger = new cre.capabilities.CronCapability().trigger({ schedule: config.schedule });
+  return [
+    config.tee
+      ? cre.handlerInTee(trigger, onCronTrigger, [{ tee: "nitro", regions: ["us-west-2"] }])
+      : cre.handler(trigger, onCronTrigger),
+  ];
 };
 
 export async function main() {
-  const runner = await Runner.newRunner<Config>();
+  const runner = await Runner.newRunner({ configSchema });
   await runner.run(initWorkflow);
 }
 
-await main();
+main();

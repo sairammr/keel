@@ -8,5 +8,6 @@
   "chainId": 11155111,
   "schedule": "0 */1 * * * *",
   "startBlock": 0,
-  "controllerCodeHash": "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88"
+  "controllerCodeHash": "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88",
+  "tee": false
 }

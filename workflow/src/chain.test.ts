@@ -83,7 +83,7 @@ class CountingHttp implements HttpLike {
 
 const CFG: Config = {
   rpc_url: "http://x", lending: ADDR, vETH: ADDR, vUSD: ADDR, policyCommit: ADDR, receipts: ADDR,
-  chainId: 11155111, schedule: "* * * * * *", startBlock: 0,
+  chainId: 11155111, schedule: "* * * * * *", startBlock: 0, tee: false,
   controllerCodeHash: ("0x" + "00".repeat(32)) as Hex,
 };
 

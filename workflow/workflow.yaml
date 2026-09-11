@@ -1,0 +1,15 @@
+# CRE workflow settings. workflow-path points at the KEEL confidential cron handler.
+staging-settings:
+  user-workflow:
+    workflow-name: "keel-staging"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: "../secrets.yaml"
+production-settings:
+  user-workflow:
+    workflow-name: "keel"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.production.json"
+    secrets-path: "../secrets.yaml"

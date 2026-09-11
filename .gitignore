@@ -27,3 +27,10 @@ contracts/lib/
 
 # logs
 *.log
+
+# vendored agent skills (regenerate: npx skills add …)
+.agents/
+.claude/
+skills-lock.json
+workflow/src/.cre_build_tmp.js
+*.wasm
