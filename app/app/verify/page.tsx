@@ -14,7 +14,7 @@ import { runKeel } from "@/lib/engine";
 import {
   KEEL_POLICY,
   DEMO_SALT_HEX,
-  DEMO_CODE_HASH,
+  CONTROLLER_CODE_HASH,
   DEMO_RECEIPTS_ADDR,
   demoSaltBytes,
 } from "@/lib/policy";
@@ -37,11 +37,11 @@ const short = (h: string) => `${h.slice(0, 10)}…${h.slice(-8)}`;
 
 export default function VerifyPage() {
   const commit = useMemo(
-    () => commitmentOf(KEEL_POLICY, DEMO_SALT_HEX as `0x${string}`, DEMO_CODE_HASH),
+    () => commitmentOf(KEEL_POLICY, DEMO_SALT_HEX as `0x${string}`, CONTROLLER_CODE_HASH),
     [],
   );
   const policyHash = useMemo(
-    () => policyHashOf(encodePolicyBytes(KEEL_POLICY, DEMO_CODE_HASH)),
+    () => policyHashOf(encodePolicyBytes(KEEL_POLICY, CONTROLLER_CODE_HASH)),
     [],
   );
   const run = useMemo(
@@ -110,7 +110,7 @@ export default function VerifyPage() {
   const revealCommit = commitmentOf(
     KEEL_POLICY,
     DEMO_SALT_HEX as `0x${string}`,
-    DEMO_CODE_HASH,
+    CONTROLLER_CODE_HASH,
   ).commit;
   const commitMatches = revealCommit === commit.commit;
 

@@ -6,5 +6,5 @@
   "chainId": 11155111,
   "schedule": "0 */1 * * * *",
   "startBlock": 0,
-  "controllerCodeHash": "0x50188e7c737f15daeec7a4014c6efed8f472faf4f89f79348f3e5d1401934782"
+  "controllerCodeHash": "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88"
 }

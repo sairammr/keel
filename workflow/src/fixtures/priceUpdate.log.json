@@ -1,0 +1,9 @@
+{
+  "_note": "Wire format of the official ChallengeLending PriceUpdate(uint256 oldPrice,uint256 newPrice) event exactly as Sepolia eth_getLogs returns it. Both args are non-indexed, so both live in `data` (oldPrice||newPrice, 32 bytes each). Values here: oldPrice=200000 (0x30d40), newPrice=193800 (0x2f508). Reconstructed off-chain because scenarioStartTime==0 on 0x8857…1ba1 at plan time, so no live PriceUpdate log exists yet; replace with a copied live log once the scenario starts.",
+  "address": "0x88574e7cc0027afd04951daa09b64d4441931ba1",
+  "topics": [
+    "0x92664190cca12aca9cd5309d87194bdda75bb51362d71c06e1a6f75c7c765711"
+  ],
+  "data": "0x0000000000000000000000000000000000000000000000000000000000030d40000000000000000000000000000000000000000000000000000000000002f508",
+  "blockNumber": "0xb2f9b4"
+}

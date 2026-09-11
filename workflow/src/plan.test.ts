@@ -1,25 +1,19 @@
 import { expect, test } from "bun:test";
-import { parseAbi, encodeAbiParameters, parseAbiParameters, decodeEventLog, encodeEventTopics } from "viem";
-import { roundOfBlock, orderLegs, planNonces } from "./plan.ts";
+import { roundOfBlock, orderLegs, planNonces, pricesFrom } from "./plan.ts";
 
-const LENDING_ABI = parseAbi([
-  "event PriceUpdate(uint256 newPrice)",
-]);
+// PriceUpdate decode + official ABI/topic tests live in chain.test.ts.
 
-test("PriceUpdate log decodes to newPrice → prices[] mapping", () => {
-  // Build 3 PriceUpdate logs (non-indexed uint256 in data), decode → prices.
-  const [topic0] = encodeEventTopics({ abi: LENDING_ABI, eventName: "PriceUpdate" });
-  const raw = [193800n, 184900n, 200000n].map((p) => ({
-    topics: [topic0!] as [`0x${string}`],
-    data: encodeAbiParameters(parseAbiParameters("uint256"), [p]),
-  }));
-  const prices = raw.map(
-    (l) => (decodeEventLog({ abi: LENDING_ABI, eventName: "PriceUpdate", data: l.data, topics: l.topics }).args as { newPrice: bigint }).newPrice,
-  );
-  expect(prices).toEqual([193800n, 184900n, 200000n]);
-  // prepend P0 as the handler does:
-  const full = [200000n, ...prices];
-  expect(full.length - 1).toBe(3); // round index of current level
+test("pricesFrom excludes PriceUpdate logs before the ChallengeStarted block", () => {
+  const logs = [
+    { price: 205000n, block: 100n }, // organiser pre-start test update
+    { price: 204000n, block: 149n }, // still before start
+    { price: 200000n, block: 150n }, // scenario start block — kept
+    { price: 193800n, block: 160n },
+  ];
+  const startedBlock = 150n;
+  expect(pricesFrom(logs, startedBlock)).toEqual([200000n, 193800n]);
+  // no start yet (minBlock 0) keeps everything
+  expect(pricesFrom(logs, 0n)).toEqual([205000n, 204000n, 200000n, 193800n]);
 });
 
 test("roundOfBlock maps an action block to its price level", () => {

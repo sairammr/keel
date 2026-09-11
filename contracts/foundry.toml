@@ -1,9 +1,26 @@
+# Two profiles (see P1.4):
+#  - default  : solc 0.8.36 + optimizer + via_ir. Robust for `forge test` (the EIP-712 Receipts and
+#               the struct-heavy test harness hit "stack too deep" without via_ir). Contract SEMANTICS
+#               are identical across profiles; only bytecode differs, so behaviour tests are valid here.
+#  - official : solc 0.8.36, optimizer OFF, via_ir OFF, evm cancun — matches the deployed official
+#               build EXACTLY. Used only to produce ChallengeLending's runtime bytecode for the
+#               P1.4 fidelity comparison against on-chain eth_getCode(0x8857…1ba1).
 [profile.default]
 src = "src"
 out = "out"
 libs = ["lib"]
 optimizer = true
 via_ir = true
-solc = "0.8.20"
+solc = "0.8.36"
+evm_version = "cancun"
+
+[profile.official]
+src = "src"
+out = "out-official"
+libs = ["lib"]
+optimizer = false
+via_ir = false
+solc = "0.8.36"
+evm_version = "cancun"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

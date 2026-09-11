@@ -12,19 +12,26 @@ import {
 import type { PrivateKeyAccount } from "viem/accounts";
 import { HTTPClient, type TeeRuntime } from "@chainlink/cre-sdk";
 import type { Config } from "./config.ts";
-import { roundOfBlock } from "./plan.ts";
+import { roundOfBlock, pricesFrom } from "./plan.ts";
 
-const LENDING_ABI = parseAbi([
+// Signatures verbatim from the official ChallengeLending (Sepolia 0x8857…1ba1, Solidity 0.8.36).
+export const LENDING_ABI = parseAbi([
   "function getUserPosition(address) view returns (uint256 collateral,uint256 debt,uint256 hf,uint256 numOperations,uint256 lastUpdateTime,uint256 cumulativeDebtTime)",
   "function vETHPrice() view returns (uint256)",
   "function scenarioStartTime() view returns (uint256)",
+  "function scenarioEndTime() view returns (uint256)",
+  "function challengeOpen() view returns (bool)",
+  "function isUser(address) view returns (bool)",
   "function vETH() view returns (address)",
   "function vUSD() view returns (address)",
   "function deposit(uint256 amount)",
   "function repay(uint256 amount)",
-  "event PriceUpdate(uint256 newPrice)",
-  "event Repay(address indexed participant,uint256 amount,uint256 hf)",
-  "event Deposit(address indexed participant,uint256 amount,uint256 hf)",
+  "event PriceUpdate(uint256 oldPrice,uint256 newPrice)",
+  "event ChallengeStarted(uint256 startTime)",
+  "event Repay(address indexed user,uint256 amount)",
+  "event Deposit(address indexed user,uint256 amount)",
+  "event WithdrawCollateral(address indexed user,uint256 amount)",
+  "event Borrow(address indexed user,uint256 amount)",
 ]);
 
 const TOKEN_ABI = parseAbi([
@@ -134,6 +141,33 @@ export class ChainReader {
     return res as bigint;
   }
 
+  scenarioEndTime(): bigint {
+    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "scenarioEndTime" });
+    return decodeFunctionResult({
+      abi: LENDING_ABI,
+      functionName: "scenarioEndTime",
+      data: this.ethCall(this.cfg.lending, data),
+    }) as bigint;
+  }
+
+  challengeOpen(): boolean {
+    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "challengeOpen" });
+    return decodeFunctionResult({
+      abi: LENDING_ABI,
+      functionName: "challengeOpen",
+      data: this.ethCall(this.cfg.lending, data),
+    }) as boolean;
+  }
+
+  isUser(addr: Address): boolean {
+    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "isUser", args: [addr] });
+    return decodeFunctionResult({
+      abi: LENDING_ABI,
+      functionName: "isUser",
+      data: this.ethCall(this.cfg.lending, data),
+    }) as boolean;
+  }
+
   /** Positional decode of collateral/debt. HF is NEVER trusted here — recompute from C/D/price. */
   position(addr: Address): Position {
     const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "getUserPosition", args: [addr] });
@@ -187,21 +221,33 @@ export class ChainReader {
     });
   }
 
-  /** [P_1, P_2, ...] since startBlock (P0 is prepended by the caller). */
-  priceUpdatesSince(fromBlock: number): bigint[] {
-    return this.priceLogs(fromBlock).map((p) => p.price);
+  /**
+   * Block of the ChallengeStarted event (scenario start), scanning from startBlock. null if not started.
+   * PriceUpdate logs before this block are organiser pre-start test updates and must be discarded.
+   */
+  startedBlock(fromBlock: number): bigint | null {
+    const [topic0] = encodeEventTopics({ abi: LENDING_ABI, eventName: "ChallengeStarted" });
+    const logs = this.getLogs(this.cfg.lending, [topic0!], fromBlock);
+    return logs.length ? logs[0]!.blockNumber : null;
+  }
+
+  /** [P_1, P_2, ...] since startBlock, excluding any level before minBlock (P0 is prepended by the caller). */
+  priceUpdatesSince(fromBlock: number, minBlock: bigint = 0n): bigint[] {
+    return pricesFrom(this.priceLogs(fromBlock), minBlock);
   }
 
   /**
    * lastActionRound: the price-level index at which my most recent Repay/Deposit landed.
    * round index = number of PriceUpdate logs at or before the action's block. -1 if never acted.
    */
-  myActions(addr: Address, fromBlock: number): number {
-    const priceBlocks = this.priceLogs(fromBlock).map((p) => p.block);
+  myActions(addr: Address, fromBlock: number, minBlock: bigint = 0n): number {
+    // priceBlocks must use the SAME ladder as the caller's prices[] (filtered by minBlock),
+    // else roundOfBlock indexes a different coordinate system than decide() reasons over.
+    const priceBlocks = this.priceLogs(fromBlock).filter((p) => p.block >= minBlock).map((p) => p.block);
     let last = -1;
-    for (const ev of ["Repay", "Deposit"] as const) {
-      const [topic0, participantTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: ev, args: { participant: addr } });
-      const logs = this.getLogs(this.cfg.lending, [topic0!, participantTopic!], fromBlock);
+    for (const ev of ["Repay", "Deposit", "WithdrawCollateral", "Borrow"] as const) {
+      const [topic0, userTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: ev, args: { user: addr } });
+      const logs = this.getLogs(this.cfg.lending, [topic0!, userTopic!], fromBlock);
       for (const l of logs) last = Math.max(last, roundOfBlock(l.blockNumber, priceBlocks));
     }
     return last;

@@ -66,11 +66,13 @@ async function onCronTrigger(rt: TeeRuntime<Config>, _t: CronPayload): Promise<s
   // 4. not started / no debt → idle
   if (started === 0n || pos.debt === 0n) return "IDLE";
 
-  // 5. rebuild prices[] from PriceUpdate logs; compute HF ourselves; find last action round.
-  const prices = [P0, ...chain.priceUpdatesSince(cfg.startBlock)];
+  // 5. rebuild prices[] from PriceUpdate logs (excluding organiser pre-start test updates);
+  //    compute HF ourselves; find last action round.
+  const startedBlk = chain.startedBlock(cfg.startBlock);
+  const prices = [P0, ...chain.priceUpdatesSince(cfg.startBlock, startedBlk ?? 0n)];
   const round = prices.length - 1;
   const hfBp = hfBpOf(pos.collateral, pos.debt, price);
-  const lastActionRound = chain.myActions(acct.address, cfg.startBlock);
+  const lastActionRound = chain.myActions(acct.address, cfg.startBlock, startedBlk ?? 0n);
   const nowS = Math.floor(rt.now().getTime() / 1000);
   const startedS = Number(started);
   const balances = chain.balances(acct.address);

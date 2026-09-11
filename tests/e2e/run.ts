@@ -99,22 +99,27 @@ async function main() {
   const codehash = JSON.parse(readFileSync(join(ROOT, "workflow", "config.local.json"), "utf8"))
     .controllerCodeHash as Hex;
 
-  // ---- STEP 1: deploy the three contracts ----
-  const lendingAddr = await deploy("ChallengeLending", "ChallengeLending");
+  // ---- STEP 1: deploy tokens, then the faithful lending (grant it ADMIN_ROLE), then KEEL core ----
+  const tokenAbi = loadArtifact("TokenvETH", "TokenvETH").abi;
+  const vETH = await deploy("TokenvETH", "TokenvETH");
+  const vUSD = await deploy("TokenvUSD", "TokenvUSD");
+  const lendingAddr = await deploy("ChallengeLending", "ChallengeLending", [vETH, vUSD]);
   const policyCommitAddr = await deploy("PolicyCommit", "PolicyCommit");
   const receiptsAddr = await deploy("Receipts", "Receipts", [policyCommitAddr]);
 
   const lendingAbi = loadArtifact("ChallengeLending", "ChallengeLending").abi;
   const policyAbi = loadArtifact("PolicyCommit", "PolicyCommit").abi;
   const receiptsAbi = loadArtifact("Receipts", "Receipts").abi;
-  const tokenAbi = loadArtifact("TokenvETH", "TokenvETH").abi;
+
+  // the lending contract mints (join/borrow) and burnsFrom (repay) → grant it ADMIN_ROLE on both tokens
+  const ADMIN_ROLE = (await publicClient.readContract({ address: vETH, abi: tokenAbi, functionName: "ADMIN_ROLE" })) as Hex;
+  await send(admin, vETH, tokenAbi, "grantRole", [ADMIN_ROLE, lendingAddr]);
+  await send(admin, vUSD, tokenAbi, "grantRole", [ADMIN_ROLE, lendingAddr]);
 
   const lending = getContract({ address: lendingAddr, abi: lendingAbi, client: publicClient });
   const receipts = getContract({ address: receiptsAddr, abi: receiptsAbi, client: publicClient });
   const policy = getContract({ address: policyCommitAddr, abi: policyAbi, client: publicClient });
 
-  const vETH = (await lending.read.vETH()) as Address;
-  const vUSD = (await lending.read.vUSD()) as Address;
   check("STEP 1 deploy: 3 contracts + tokens", true,
     `lending=${lendingAddr} policyCommit=${policyCommitAddr} receipts=${receiptsAddr} vETH=${vETH} vUSD=${vUSD}`);
 
@@ -122,11 +127,10 @@ async function main() {
   await send(admin, lendingAddr, lendingAbi, "open");
   await send(part, lendingAddr, lendingAbi, "join");
   {
-    const pos = (await lending.read.getUserPosition([partAddr])) as bigint[];
-    const [C, D, hf] = pos;
-    check("STEP 2 join: collateral==500", C === 500n, `C=${C}`);
-    check("STEP 2 join: debt==700000", D === 700000n, `D=${D}`);
-    check("STEP 2 join: hf==111", hf === 111n, `hf=${hf}`);
+    const pos = (await lending.read.getUserPosition([partAddr])) as { collateral: bigint; debt: bigint; hf: bigint };
+    check("STEP 2 join: collateral==500", pos.collateral === 500n, `C=${pos.collateral}`);
+    check("STEP 2 join: debt==700000", pos.debt === 700000n, `D=${pos.debt}`);
+    check("STEP 2 join: hf==111", pos.hf === 111n, `hf=${pos.hf}`);
   }
 
   // ---- STEP 3: commit with the REAL controller ----
@@ -142,8 +146,9 @@ async function main() {
     check("STEP 3 commit: blockNumber>0", c.blockNumber > 0n, `block=${c.blockNumber}`);
   }
 
-  // ---- STEP 4: close + start, verify commit block < start block ----
-  await send(admin, lendingAddr, lendingAbi, "close");
+  // ---- STEP 4: start, verify commit block < start block ----
+  // NB: the official close() sets challengeOpen=false, which disables ALL user actions
+  // (onlyActive), so the real scenario lifecycle is open→join→start→act (no close before the run).
   const startRcpt = await send(admin, lendingAddr, lendingAbi, "start");
   const startBlock = startRcpt.blockNumber;
   const startedS = Number((await lending.read.scenarioStartTime()) as bigint);
@@ -169,9 +174,9 @@ async function main() {
     const P = priceSteps[round]!;
     if (round > 0) await send(admin, lendingAddr, lendingAbi, "updatevETHPrice", [P]);
 
-    const pos = (await lending.read.getUserPosition([partAddr])) as bigint[];
-    const C = pos[0]!;
-    const D = pos[1]!;
+    const pos = (await lending.read.getUserPosition([partAddr])) as { collateral: bigint; debt: bigint };
+    const C = pos.collateral;
+    const D = pos.debt;
     const hfBp = hfBpOf(C, D, P);
     const undef = hf100Of(500n, 700000n, P); // what an undefended position would score
     const blk = await publicClient.getBlock();
@@ -200,8 +205,8 @@ async function main() {
     );
 
     if (d.act) {
-      // participant funding gives 0 spare vETH (collateral is locked in the contract),
-      // so the solver's chosen lever is a repay. Handle deposit too for completeness.
+      // join() mints 5.00 spare vETH to the participant (deposit is fundable); the solver may
+      // pick repay (from the 7000 vUSD) or deposit. Handle both.
       const kind = d.kind!;
       const amount = d.amount!;
       const rep = kind === "repay" ? amount : 0n;
@@ -241,12 +246,14 @@ async function main() {
       lastSig = sig;
     }
 
-    // survival proof: after defending at this (already lower) price, admin runs liquidation sweep
+    // survival proof: after defending at this (already lower) price, admin runs the liquidation
+    // sweep. The official contract has NO sticky flag — a liquidation is visible as a debt drop,
+    // so surviving means debt is unchanged by checkAllHF (and hf stays above the line).
+    const debtBefore = (await lending.read.getUserPosition([partAddr]) as { debt: bigint }).debt;
     await send(admin, lendingAddr, lendingAbi, "checkAllHF");
-    const liq = (await lending.read.liquidated([partAddr])) as boolean;
-    const posAfter = (await lending.read.getUserPosition([partAddr])) as bigint[];
-    check(`STEP 5.${round} NOT liquidated (survives)`, !liq && posAfter[2]! > 100n,
-      `liquidated=${liq} hf=${posAfter[2]}`);
+    const posAfter = (await lending.read.getUserPosition([partAddr])) as { debt: bigint; hf: bigint };
+    check(`STEP 5.${round} NOT liquidated (survives)`, posAfter.debt === debtBefore && posAfter.hf > 100n,
+      `debt ${debtBefore}->${posAfter.debt} hf=${posAfter.hf}`);
   }
 
   check("STEP 5 controller acted at least once", actionsTaken > 0, `actions=${actionsTaken}`);

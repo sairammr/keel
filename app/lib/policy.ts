@@ -30,9 +30,10 @@ export function demoSaltBytes(): Uint8Array {
   return b;
 }
 
-// Demo controller code hash (bytes32) — stands in for the reproducible build hash.
-export const DEMO_CODE_HASH =
-  ("0x" + "ce".repeat(32)) as `0x${string}`;
+// Reproducible controller source-tree hash (`bun run codehash`). Kept in sync with
+// workflow/config.*.json by `bun run codehash --check` (which also checks this constant).
+export const CONTROLLER_CODE_HASH =
+  "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88" as `0x${string}`;
 
 // verifyingContract for local EIP-712 receipts (Receipts.sol addr; demo placeholder).
 export const DEMO_RECEIPTS_ADDR =

@@ -20,8 +20,12 @@ export interface Config {
    */
   controllerCodeHash: `0x${string}`;
   /**
-   * Optional block hint: the block of ChallengeStarted, so log scans start there
-   * instead of genesis. 0 = scan from 0 (correct but slower).
+   * REQUIRED. Block of ChallengeOpened for the target contract (own copy: its deployment block),
+   * so log scans start there instead of genesis. Official Sepolia contract: 11661556.
+   * The public RPC caps eth_getLogs at 50 000 blocks, so a stale/zero value silently breaks
+   * the log scan once the chain moves past that window — keep this current.
+   * The private keel_rpc_url secret must be an uncapped provider (Alchemy/Infura); the public
+   * fallback here serves eth_call / eth_sendRawTransaction but not full-range eth_getLogs.
    */
   startBlock: number;
 }

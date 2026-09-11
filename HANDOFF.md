@@ -130,7 +130,7 @@ Current value baked into configs: `0x50188e7c…934782`. **Recompute before depl
 - **`getUserPosition` returns 6 fields** (starter ABI says 5). The workflow decodes `collateral`/`debt` positionally but **always recomputes HF** via `hfBpOf(C,D,price)` — never trusts the decoded tail.
 - **`handlerInTee(trigger, fn, {})`** — 3rd arg is the TEE constraint (`{}` = any region), verified against the SDK `.d.ts`. Resolved the plan's [unverified] note.
 - **No policy value is ever logged.** Handler returns one-word statuses only (`COMMITTED`/`IDLE`/`SAFE`/`DEFENDED`). Keep it that way (rubric: "no private inputs in logs").
-- **Deposit vs repay funding:** `join()` mints the 500 vETH collateral into the lending contract, so the participant holds 0 spare vETH → the solver picks repay (funded from the 700000 vUSD). Real balances are read; not a fudge.
+- **Deposit vs repay funding:** on the OFFICIAL contract `join()` mints 5.00 spare vETH *to the participant* (plus 7,000 vUSD) and locks 5.00 vETH as collateral — so the deposit leg IS fundable on-chain. (The earlier claim that the participant holds 0 spare vETH described only the simplified local copy and is false for the real contract; P1.4 makes the local copy faithful.) Real balances are read; the solver picks repay or deposit from actual holdings.
 - Contracts pinned to Solidity 0.8.20 with `via_ir = true` (15-field `abi.encode` / 6-field struct → stack-too-deep otherwise).
 
 ---

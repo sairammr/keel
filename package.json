@@ -12,7 +12,9 @@
     "tune": "bun run packages/scenario/src/tune.ts",
     "replay": "bun run packages/scenario/src/replay.ts",
     "e2e": "bash tests/e2e/e2e.sh",
-    "contracts:test": "cd contracts && forge test"
+    "contracts:test": "cd contracts && forge test",
+    "rpc-check": "bun run scripts/rpc-check.ts",
+    "codehash": "bun run workflow/src/codehash.ts"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

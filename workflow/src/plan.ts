@@ -10,6 +10,14 @@ export function roundOfBlock(actionBlock: bigint, priceBlocks: bigint[]): number
   return r;
 }
 
+/**
+ * Prices from PriceUpdate logs at or after minBlock. Levels before the ChallengeStarted block are
+ * organiser pre-start test updates and must not enter the ladder the controller reasons over.
+ */
+export function pricesFrom(logs: { price: bigint; block: bigint }[], minBlock: bigint): bigint[] {
+  return logs.filter((l) => l.block >= minBlock).map((l) => l.price);
+}
+
 export interface Leg {
   kind: "deposit" | "repay";
   amount: bigint;

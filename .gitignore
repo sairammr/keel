@@ -18,6 +18,7 @@ secrets.yaml
 
 # foundry
 contracts/out/
+contracts/out-official/
 contracts/cache/
 contracts/lib/
 
