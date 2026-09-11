@@ -17,6 +17,7 @@
     "codehash": "bun run workflow/src/codehash.ts"
   },
   "devDependencies": {
+    "@types/node": "^22.20.2",
     "typescript": "^5.6.3"
   },
   "dependencies": {

@@ -6,6 +6,10 @@ export interface Config {
   rpc_url: string;
   /** ChallengeLending address (the lending protocol we protect). */
   lending: `0x${string}`;
+  /** vETH / vUSD token addresses (known at deploy time). Kept in config so balanceOf fits the
+   *  single batched read (no extra round-trip to read them from the lending contract). */
+  vETH: `0x${string}`;
+  vUSD: `0x${string}`;
   /** PolicyCommit contract — one-shot commitment posted by the enclave. */
   policyCommit: `0x${string}`;
   /** Receipts contract — EIP-712 action receipts. */

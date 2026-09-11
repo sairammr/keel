@@ -36,15 +36,15 @@ export function orderLegs(sr: { kind: "deposit" | "repay" | "withdraw"; dep: big
   return legs;
 }
 
-export interface NoncePlan {
-  legNonces: number[]; // nonce per leg tx, in send order
-  actionNonce: number; // nonce of the finishing (last) leg tx
-  receiptNonce: number; // === actionNonce + 1
+export interface LegNonce {
+  legNonce: number; // nonce of the action tx
+  receiptNonce: number; // === legNonce + 1 (adjacency proof, per leg)
 }
 
-/** Nonce assignment for the legs + the receipt (which must be exactly actionNonce + 1). */
-export function planNonces(startNonce: number, nLegs: number): NoncePlan {
-  const legNonces = Array.from({ length: nLegs }, (_, i) => startNonce + i);
-  const actionNonce = startNonce + nLegs - 1;
-  return { legNonces, actionNonce, receiptNonce: actionNonce + 1 };
+/**
+ * One receipt PER leg, each posted at legNonce + 1. For 2 legs starting at n the nonce sequence is
+ * [L1=n, R1=n+1, L2=n+2, R2=n+3] — so the batch is action,receipt,action,receipt in nonce order.
+ */
+export function planNonces(startNonce: number, nLegs: number): LegNonce[] {
+  return Array.from({ length: nLegs }, (_, i) => ({ legNonce: startNonce + 2 * i, receiptNonce: startNonce + 2 * i + 1 }));
 }

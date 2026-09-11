@@ -20,7 +20,9 @@ import { ContractMirror } from "./mirror.ts";
 import { P0 } from "../../controller/src/index.ts";
 
 const ANVIL = Bun.which("anvil");
-const PORT = 8546;
+// randomize the port so a leftover anvil from an aborted run can't be silently connected to
+// (a fixed port let a stale node answer with wrong state → slow, spurious failures).
+const PORT = 8600 + Math.floor(Math.random() * 300);
 const RPC = `http://127.0.0.1:${PORT}`;
 const KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as Hex; // anvil acct 0
 const SEQUENCES = Number(process.env.KEEL_ANVIL_SEQ ?? 200);
@@ -78,12 +80,15 @@ beforeAll(async () => {
   // low pollingInterval: anvil auto-mines instantly; the 4s default would dominate runtime.
   pub = createPublicClient({ transport: http(RPC), pollingInterval: 5 });
   wallet = createWalletClient({ transport: http(RPC), pollingInterval: 5 });
-  // wait until responsive
+  // wait until responsive, then assert it's OUR fresh anvil (block 0), not a stale leftover
   for (let i = 0; i < 100; i++) {
     try {
       await pub.getChainId();
+      const block = await pub.getBlockNumber();
+      if (block !== 0n) throw new Error(`port ${PORT} answered at block ${block}, not a fresh anvil`);
       return;
-    } catch {
+    } catch (e) {
+      if (String(e).includes("not a fresh anvil")) throw e;
       await Bun.sleep(50);
     }
   }

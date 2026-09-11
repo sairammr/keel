@@ -1,10 +1,12 @@
 {
   "rpc_url": "https://ethereum-sepolia-rpc.publicnode.com",
-  "lending": "0x88574e7Cc0027afd04951daa09B64d4441931ba1",
-  "policyCommit": "0x0000000000000000000000000000000000000000",
-  "receipts": "0x0000000000000000000000000000000000000000",
+  "lending": "0x0DCC9ca6262b658E8cbD29bdCe18b5ca370e3949",
+  "vETH": "0xE08232A16e7109d276edac850D88ABBFaC6e2F7A",
+  "vUSD": "0x236263155D275448fa95BC6295fAb579f099fe76",
+  "policyCommit": "0xACbf2d364817AB8c42C6573C748702BE0f7aAA6b",
+  "receipts": "0x726717FBe26e1502c5575647d1D46E618e912Aee",
   "chainId": 11155111,
   "schedule": "0 */1 * * * *",
-  "startBlock": 11661556,
+  "startBlock": 11682586,
   "controllerCodeHash": "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88"
 }

@@ -9,25 +9,26 @@
 //                                    of utf8(relPath) ‖ 0x00 ‖ utf8(content) ‖ 0x00 )
 //
 // relPath is POSIX-relative to packages/controller (e.g. "src/decide.ts") so it is machine-stable.
-import { readdirSync, readFileSync } from "node:fs";
+// Uses Bun's typed fs APIs (Bun.Glob / Bun.file) so it needs no @types/node.
 import { keccak256, type Hex } from "viem";
 
 const CONTROLLER_DIR = new URL("../../packages/controller", import.meta.url).pathname;
 
 /** Sorted source files that define the controller algorithm (no tests, no fixtures). */
 export function controllerSourceFiles(controllerDir = CONTROLLER_DIR): string[] {
-  return readdirSync(`${controllerDir}/src`)
-    .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts") && f !== "fixture.ts")
+  return Array.from(new Bun.Glob("*.ts").scanSync({ cwd: `${controllerDir}/src`, onlyFiles: true }))
+    .filter((f) => !f.endsWith(".test.ts") && f !== "fixture.ts")
     .sort()
     .map((f) => `src/${f}`);
 }
 
-export function controllerCodeHash(controllerDir = CONTROLLER_DIR): Hex {
+export async function controllerCodeHash(controllerDir = CONTROLLER_DIR): Promise<Hex> {
   const enc = new TextEncoder();
   const NUL = new Uint8Array([0]);
   const parts: Uint8Array[] = [];
   for (const rel of controllerSourceFiles(controllerDir)) {
-    parts.push(enc.encode(rel), NUL, enc.encode(readFileSync(`${controllerDir}/${rel}`, "utf8")), NUL);
+    const content = await Bun.file(`${controllerDir}/${rel}`).text();
+    parts.push(enc.encode(rel), NUL, enc.encode(content), NUL);
   }
   const total = parts.reduce((n, p) => n + p.length, 0);
   const buf = new Uint8Array(total);
@@ -40,26 +41,26 @@ export function controllerCodeHash(controllerDir = CONTROLLER_DIR): Hex {
 }
 
 if (import.meta.main) {
-  const hash = controllerCodeHash();
+  const hash = await controllerCodeHash();
   if (!process.argv.includes("--check")) {
     console.log(hash);
     process.exit(0);
   }
   // --check: every committed controllerCodeHash must equal the source-tree hash.
-  const root = new URL("..", import.meta.url).pathname; // workflow/
-  const repo = new URL("../..", import.meta.url).pathname;
+  const workflowDir = new URL("..", import.meta.url).pathname;
+  const repoDir = new URL("../..", import.meta.url).pathname;
   let ok = true;
   const eq = (label: string, val?: string) => {
     const match = val?.toLowerCase() === hash.toLowerCase();
     console.log(`${match ? "OK  " : "FAIL"} ${label}: ${val}`);
     if (!match) ok = false;
   };
-  for (const c of readdirSync(root).filter((f) => /^config\..*\.json$/.test(f))) {
-    const cfg = JSON.parse(readFileSync(`${root}/${c}`, "utf8")) as { controllerCodeHash?: string };
+  for (const c of new Bun.Glob("config.*.json").scanSync({ cwd: workflowDir, onlyFiles: true })) {
+    const cfg = (await Bun.file(`${workflowDir}/${c}`).json()) as { controllerCodeHash?: string };
     eq(`workflow/${c}`, cfg.controllerCodeHash);
   }
   // app constant (client bundle can't run fs-hash, so it holds a literal we verify here)
-  const appPolicy = readFileSync(`${repo}/app/lib/policy.ts`, "utf8");
+  const appPolicy = await Bun.file(`${repoDir}/app/lib/policy.ts`).text();
   eq("app/lib/policy.ts CONTROLLER_CODE_HASH", appPolicy.match(/CONTROLLER_CODE_HASH\s*=\s*"(0x[0-9a-fA-F]+)"/)?.[1]);
   console.log(`source-tree hash: ${hash}`);
   process.exit(ok ? 0 : 1);

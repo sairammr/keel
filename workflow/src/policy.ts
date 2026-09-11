@@ -1,37 +1,24 @@
 import { hexToBytes } from "viem";
 import type { Policy } from "../../packages/controller/src/index.ts";
 
-// Secret ids (must match secrets.yaml / Vault). NO values live here or in config.
-export const POLICY_SECRET_IDS = [
-  "keel_base_bp",
-  "keel_kvol_bp",
-  "keel_volcap_bp",
-  "keel_jitter_bp",
-  "keel_tmax_bp",
-  "keel_emerg_bp",
-  "keel_buffer_bp",
-  "keel_target_cap_bp",
-  "keel_halflife",
-  "keel_cooldown",
-  "keel_max_repay_bp",
-  "keel_max_deposit",
-  "keel_t_est_s",
-] as const;
-
+// CRE quota: ≤ 5 secrets fetched per execution (2 KB each). So the 13 policy parameters are packed
+// into ONE JSON secret `keel_policy` (< 2 KB) instead of 13 separate ids. Total = 4 secrets.
+export const POLICY_SECRET_ID = "keel_policy";
 export const SALT_SECRET_ID = "keel_salt";
 export const RPC_SECRET_ID = "keel_rpc_url";
 export const KEY_SECRET_ID = "liquidation_private_key";
 
-/** All secret ids the handler requests each tick. */
-export const ALL_SECRET_IDS = [
-  ...POLICY_SECRET_IDS,
-  SALT_SECRET_ID,
-  RPC_SECRET_ID,
-  KEY_SECRET_ID,
-] as const;
+/** The four secret ids the handler requests each tick (≤ 5 quota). */
+export const ALL_SECRET_IDS = [POLICY_SECRET_ID, SALT_SECRET_ID, RPC_SECRET_ID, KEY_SECRET_ID] as const;
 
 /** Minimal shape of a resolved secret ({ value } is all we read). */
 export type SecretMap = Record<string, { value: string } | undefined>;
+
+// The exact integer fields a Policy must carry. Used to validate keel_policy and reject anything else.
+const POLICY_FIELDS = [
+  "base_bp", "kvol_bp", "volcap_bp", "jitter_bp", "tmax_bp", "emerg_bp", "buffer_bp",
+  "target_cap_bp", "halflife", "cooldown", "max_repay_bp", "max_deposit", "t_est_s",
+] as const;
 
 function req(secrets: SecretMap, id: string): string {
   const v = secrets[id]?.value;
@@ -39,11 +26,26 @@ function req(secrets: SecretMap, id: string): string {
   return v;
 }
 
-function num(secrets: SecretMap, id: string): number {
-  const raw = req(secrets, id);
-  const n = Number(raw);
-  if (!Number.isInteger(n)) throw new Error(`secret ${id} not an integer: got non-integer`);
-  return n;
+/** Parse + validate the packed keel_policy JSON: every field present, integer, no unknown keys. */
+export function parsePackedPolicy(json: string): Policy {
+  let obj: Record<string, unknown>;
+  try {
+    obj = JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    throw new Error("keel_policy is not valid JSON");
+  }
+  if (typeof obj !== "object" || obj === null) throw new Error("keel_policy must be a JSON object");
+
+  const known = new Set<string>(POLICY_FIELDS);
+  for (const k of Object.keys(obj)) if (!known.has(k)) throw new Error(`keel_policy has unknown field: ${k}`);
+
+  const out = {} as Record<(typeof POLICY_FIELDS)[number], number>;
+  for (const f of POLICY_FIELDS) {
+    const v = obj[f];
+    if (typeof v !== "number" || !Number.isInteger(v)) throw new Error(`keel_policy.${f} must be an integer`);
+    out[f] = v;
+  }
+  return out as unknown as Policy;
 }
 
 export interface ParsedSecrets {
@@ -55,24 +57,9 @@ export interface ParsedSecrets {
 
 /** Build a Policy + operational secrets from getSecrets() output. No defaults — all from Vault. */
 export function parsePolicy(secrets: SecretMap): ParsedSecrets {
-  const policy: Policy = {
-    base_bp: num(secrets, "keel_base_bp"),
-    kvol_bp: num(secrets, "keel_kvol_bp"),
-    volcap_bp: num(secrets, "keel_volcap_bp"),
-    jitter_bp: num(secrets, "keel_jitter_bp"),
-    tmax_bp: num(secrets, "keel_tmax_bp"),
-    emerg_bp: num(secrets, "keel_emerg_bp"),
-    buffer_bp: num(secrets, "keel_buffer_bp"),
-    target_cap_bp: num(secrets, "keel_target_cap_bp"),
-    halflife: num(secrets, "keel_halflife"),
-    cooldown: num(secrets, "keel_cooldown"),
-    max_repay_bp: num(secrets, "keel_max_repay_bp"),
-    max_deposit: num(secrets, "keel_max_deposit"),
-    t_est_s: num(secrets, "keel_t_est_s"),
-  };
+  const policy = parsePackedPolicy(req(secrets, POLICY_SECRET_ID));
 
-  const saltHex = req(secrets, SALT_SECRET_ID);
-  const salt = hexToBytes(saltHex as `0x${string}`);
+  const salt = hexToBytes(req(secrets, SALT_SECRET_ID) as `0x${string}`);
   if (salt.length !== 32) throw new Error("keel_salt must be 32 bytes");
 
   const rpcRaw = secrets[RPC_SECRET_ID]?.value;

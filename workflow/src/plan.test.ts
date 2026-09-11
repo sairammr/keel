@@ -40,18 +40,15 @@ test("orderLegs puts the finishing leg last and drops zero legs", () => {
   expect(orderLegs({ kind: "repay", dep: 0n, rep: 4200n })).toEqual([{ kind: "repay", amount: 4200n }]);
 });
 
-test("nonce adjacency: receipt nonce is exactly actionNonce + 1", () => {
-  // Two legs starting at nonce 12: leg txs 12,13; action(finishing)=13; receipt=14.
+test("nonce adjacency: one receipt PER leg at legNonce+1 ([L1,R1,L2,R2])", () => {
+  // Two legs starting at nonce 12: L1=12,R1=13,L2=14,R2=15.
   const two = planNonces(12, 2);
-  expect(two.legNonces).toEqual([12, 13]);
-  expect(two.actionNonce).toBe(13);
-  expect(two.receiptNonce).toBe(14);
-  expect(two.receiptNonce).toBe(two.actionNonce + 1);
+  expect(two).toEqual([
+    { legNonce: 12, receiptNonce: 13 },
+    { legNonce: 14, receiptNonce: 15 },
+  ]);
+  for (const p of two) expect(p.receiptNonce).toBe(p.legNonce + 1);
 
-  // One leg at nonce 7: leg tx 7; action=7; receipt=8.
-  const one = planNonces(7, 1);
-  expect(one.legNonces).toEqual([7]);
-  expect(one.actionNonce).toBe(7);
-  expect(one.receiptNonce).toBe(8);
-  expect(one.receiptNonce).toBe(one.actionNonce + 1);
+  // One leg at nonce 7: L1=7,R1=8.
+  expect(planNonces(7, 1)).toEqual([{ legNonce: 7, receiptNonce: 8 }]);
 });

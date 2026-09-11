@@ -50,16 +50,12 @@ const RECEIPTS_ABI = parseAbi([
 
 export const MAX_UINT256 = (1n << 256n) - 1n;
 const GAS_LIMIT = 500_000n; // ponytail: fixed gas; add eth_estimateGas only if a call ever OOGs.
+const MAX_RESP_BYTES = 90 * 1024; // CRE HTTP response cap is 100 KB; guard at 90 KB (K5).
 
 interface RawLog {
   data: Hex;
   topics: Hex[];
   blockNumber: bigint;
-}
-
-interface PriceLog {
-  price: bigint;
-  block: bigint;
 }
 
 export interface Position {
@@ -77,20 +73,52 @@ export interface Balances {
   vUSD: bigint;
 }
 
-/** All chain I/O as raw JSON-RPC over the enclave HTTP capability. */
+/** Everything the handler needs for one tick — fetched in ONE batched HTTP request. */
+export interface TickState {
+  blockNumber: bigint;
+  gasPrice: bigint; // already ×1.25
+  nonce: number; // pending
+  price: bigint;
+  position: Position;
+  scenarioStartTime: bigint;
+  scenarioEndTime: bigint;
+  challengeOpen: boolean;
+  isUser: boolean;
+  commit: CommitState;
+  balances: Balances;
+  startedBlock: bigint | null;
+  priceLevels: bigint[]; // observed PriceUpdate levels since ChallengeStarted (P0 prepended by caller)
+  lastActionRound: number;
+}
+
+export interface Tx {
+  to: Address;
+  data: Hex;
+}
+
+type Call = { method: string; params: unknown[] };
+
+/** Minimal HTTP surface we use — the SDK's HTTPClient satisfies it; tests inject a counting fake. */
+export interface HttpLike {
+  sendRequest(rt: unknown, req: { url: string; method: string; headers: Record<string, string>; body: string }): { result(): { body: Uint8Array } };
+}
+
+/** All chain I/O as raw JSON-RPC over the enclave HTTP capability, batched to fit CRE's 5-call quota. */
 export class ChainReader {
-  private readonly http = new HTTPClient();
-  private tokens?: { vETH: Address; vUSD: Address };
+  private readonly http: HttpLike;
 
   constructor(
     private readonly rt: TeeRuntime<Config>,
     private readonly rpcUrl: string,
     private readonly cfg: Config,
-  ) {}
+    http?: HttpLike,
+  ) {
+    this.http = http ?? (new HTTPClient() as unknown as HttpLike);
+  }
 
-  // ---- raw JSON-RPC ----
-  private rpc<T = unknown>(method: string, params: unknown[]): T {
-    const payload = JSON.stringify({ jsonrpc: "2.0", id: 1, method, params });
+  /** One HTTP request carrying a JSON-RPC batch; results matched by id (never by position). */
+  private rpcBatch(calls: Call[]): unknown[] {
+    const payload = JSON.stringify(calls.map((c, i) => ({ jsonrpc: "2.0", id: i, method: c.method, params: c.params })));
     const resp = this.http
       .sendRequest(this.rt, {
         url: this.rpcUrl,
@@ -99,201 +127,144 @@ export class ChainReader {
         body: Buffer.from(payload).toString("base64"),
       })
       .result();
-    const text = new TextDecoder().decode(resp.body);
-    const parsed = JSON.parse(text) as { result?: T; error?: { message: string } };
-    if (parsed.error) throw new Error(`rpc ${method} failed: ${parsed.error.message}`);
-    return parsed.result as T;
+    const bytes = resp.body as Uint8Array;
+    if (bytes.length > MAX_RESP_BYTES) throw new Error(`rpc batch response ${bytes.length}B exceeds ${MAX_RESP_BYTES}B cap`);
+    const arr = JSON.parse(new TextDecoder().decode(bytes)) as Array<{ id: number; result?: unknown; error?: { message: string } }>;
+    const byId = new Array<unknown>(calls.length);
+    for (const r of arr) {
+      if (r.error) throw new Error(`rpc ${calls[r.id]?.method} failed: ${r.error.message}`);
+      byId[r.id] = r.result;
+    }
+    return byId;
   }
 
-  private ethCall(to: Address, data: Hex): Hex {
-    return this.rpc<Hex>("eth_call", [{ to, data }, "latest"]);
+  private callData(abi: readonly unknown[], to: Address, fn: string, args: unknown[] = []): Call {
+    // viem's generics can't type dynamic (fn, args) dispatch; the ABI guarantees correctness at runtime.
+    const data = encodeFunctionData({ abi, functionName: fn, args } as Parameters<typeof encodeFunctionData>[0]);
+    return { method: "eth_call", params: [{ to, data }, "latest"] };
   }
 
-  private getLogs(address: Address, topics: (Hex | Hex[] | null)[], fromBlock: number): RawLog[] {
-    const raw = this.rpc<Array<{ data: Hex; topics: Hex[]; blockNumber: Hex }>>("eth_getLogs", [
-      { address, topics, fromBlock: numberToHex(fromBlock), toBlock: "latest" },
-    ]);
+  private logsCall(address: Address, topics: (Hex | Hex[] | null)[], fromBlock: number): Call {
+    return { method: "eth_getLogs", params: [{ address, topics, fromBlock: numberToHex(fromBlock), toBlock: "latest" }] };
+  }
+
+  private decodeCall<T>(abi: readonly unknown[], fn: string, data: Hex): T {
+    return decodeFunctionResult({ abi, functionName: fn, data } as Parameters<typeof decodeFunctionResult>[0]) as T;
+  }
+
+  private toLogs(raw: Array<{ data: Hex; topics: Hex[]; blockNumber: Hex }>): RawLog[] {
     return raw.map((l) => ({ data: l.data, topics: l.topics, blockNumber: fromHex(l.blockNumber, "bigint") }));
   }
 
-  // ---- reads ----
-  blockNumber(): bigint {
-    return fromHex(this.rpc<Hex>("eth_blockNumber", []), "bigint");
-  }
-
-  price(): bigint {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "vETHPrice" });
-    const res = decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "vETHPrice",
-      data: this.ethCall(this.cfg.lending, data),
-    });
-    return res as bigint;
-  }
-
-  scenarioStartTime(): bigint {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "scenarioStartTime" });
-    const res = decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "scenarioStartTime",
-      data: this.ethCall(this.cfg.lending, data),
-    });
-    return res as bigint;
-  }
-
-  scenarioEndTime(): bigint {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "scenarioEndTime" });
-    return decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "scenarioEndTime",
-      data: this.ethCall(this.cfg.lending, data),
-    }) as bigint;
-  }
-
-  challengeOpen(): boolean {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "challengeOpen" });
-    return decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "challengeOpen",
-      data: this.ethCall(this.cfg.lending, data),
-    }) as boolean;
-  }
-
-  isUser(addr: Address): boolean {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "isUser", args: [addr] });
-    return decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "isUser",
-      data: this.ethCall(this.cfg.lending, data),
-    }) as boolean;
-  }
-
-  /** Positional decode of collateral/debt. HF is NEVER trusted here — recompute from C/D/price. */
-  position(addr: Address): Position {
-    const data = encodeFunctionData({ abi: LENDING_ABI, functionName: "getUserPosition", args: [addr] });
-    const res = decodeFunctionResult({
-      abi: LENDING_ABI,
-      functionName: "getUserPosition",
-      data: this.ethCall(this.cfg.lending, data),
-    }) as readonly bigint[];
-    return { collateral: res[0]!, debt: res[1]! };
-  }
-
-  commitOf(addr: Address): CommitState {
-    const data = encodeFunctionData({ abi: POLICY_COMMIT_ABI, functionName: "commits", args: [addr] });
-    const res = decodeFunctionResult({
-      abi: POLICY_COMMIT_ABI,
-      functionName: "commits",
-      data: this.ethCall(this.cfg.policyCommit, data),
-    }) as readonly [Hex, Address, bigint, bigint];
-    return { hash: res[0], signer: res[1] };
-  }
-
-  private tokenAddrs(): { vETH: Address; vUSD: Address } {
-    if (this.tokens) return this.tokens;
-    const readAddr = (fn: "vETH" | "vUSD"): Address =>
-      decodeFunctionResult({
-        abi: LENDING_ABI,
-        functionName: fn,
-        data: this.ethCall(this.cfg.lending, encodeFunctionData({ abi: LENDING_ABI, functionName: fn })),
-      }) as Address;
-    this.tokens = { vETH: readAddr("vETH"), vUSD: readAddr("vUSD") };
-    return this.tokens;
-  }
-
-  balances(addr: Address): Balances {
-    const t = this.tokenAddrs();
-    const bal = (token: Address): bigint =>
-      decodeFunctionResult({
-        abi: TOKEN_ABI,
-        functionName: "balanceOf",
-        data: this.ethCall(token, encodeFunctionData({ abi: TOKEN_ABI, functionName: "balanceOf", args: [addr] })),
-      }) as bigint;
-    return { vETH: bal(t.vETH), vUSD: bal(t.vUSD) };
-  }
-
-  private priceLogs(fromBlock: number): PriceLog[] {
-    const [topic0] = encodeEventTopics({ abi: LENDING_ABI, eventName: "PriceUpdate" });
-    const logs = this.getLogs(this.cfg.lending, [topic0!], fromBlock);
-    return logs.map((l) => {
-      const { args } = decodeEventLog({ abi: LENDING_ABI, eventName: "PriceUpdate", data: l.data, topics: l.topics as [Hex, ...Hex[]] });
-      return { price: (args as { newPrice: bigint }).newPrice, block: l.blockNumber };
-    });
-  }
-
   /**
-   * Block of the ChallengeStarted event (scenario start), scanning from startBlock. null if not started.
-   * PriceUpdate logs before this block are organiser pre-start test updates and must be discarded.
+   * REQUEST 1: fetch the entire tick state in a single batched JSON-RPC call.
+   * ~15 sub-calls (3 node + 9 eth_call + 3 getLogs) but exactly one HTTP request.
    */
-  startedBlock(fromBlock: number): bigint | null {
-    const [topic0] = encodeEventTopics({ abi: LENDING_ABI, eventName: "ChallengeStarted" });
-    const logs = this.getLogs(this.cfg.lending, [topic0!], fromBlock);
-    return logs.length ? logs[0]!.blockNumber : null;
-  }
+  readAll(addr: Address): TickState {
+    const me = addr;
+    // OR all four action-event topic0s in one getLogs; they all carry `user` as the first indexed arg.
+    const actionTopics = (["Repay", "Deposit", "WithdrawCollateral", "Borrow"] as const).map(
+      (ev) => encodeEventTopics({ abi: LENDING_ABI, eventName: ev })[0]!,
+    );
+    const [, userTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: "Repay", args: { user: me } });
+    const [priceTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: "PriceUpdate" });
+    const [startedTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: "ChallengeStarted" });
 
-  /** [P_1, P_2, ...] since startBlock, excluding any level before minBlock (P0 is prepended by the caller). */
-  priceUpdatesSince(fromBlock: number, minBlock: bigint = 0n): bigint[] {
-    return pricesFrom(this.priceLogs(fromBlock), minBlock);
-  }
+    const L = this.cfg.lending;
+    const from = this.cfg.startBlock;
+    const calls: Call[] = [
+      { method: "eth_blockNumber", params: [] }, // 0
+      { method: "eth_gasPrice", params: [] }, // 1
+      { method: "eth_getTransactionCount", params: [me, "pending"] }, // 2
+      this.callData(LENDING_ABI, L, "vETHPrice"), // 3
+      this.callData(LENDING_ABI, L, "getUserPosition", [me]), // 4
+      this.callData(LENDING_ABI, L, "scenarioStartTime"), // 5
+      this.callData(LENDING_ABI, L, "scenarioEndTime"), // 6
+      this.callData(LENDING_ABI, L, "challengeOpen"), // 7
+      this.callData(LENDING_ABI, L, "isUser", [me]), // 8
+      this.callData(POLICY_COMMIT_ABI, this.cfg.policyCommit, "commits", [me]), // 9
+      this.callData(TOKEN_ABI, this.cfg.vETH, "balanceOf", [me]), // 10
+      this.callData(TOKEN_ABI, this.cfg.vUSD, "balanceOf", [me]), // 11
+      this.logsCall(L, [startedTopic!], from), // 12
+      this.logsCall(L, [priceTopic!], from), // 13
+      this.logsCall(L, [actionTopics as Hex[], userTopic!], from), // 14: all 4 action events, my user
+    ];
+    const r = this.rpcBatch(calls);
 
-  /**
-   * lastActionRound: the price-level index at which my most recent Repay/Deposit landed.
-   * round index = number of PriceUpdate logs at or before the action's block. -1 if never acted.
-   */
-  myActions(addr: Address, fromBlock: number, minBlock: bigint = 0n): number {
-    // priceBlocks must use the SAME ladder as the caller's prices[] (filtered by minBlock),
-    // else roundOfBlock indexes a different coordinate system than decide() reasons over.
-    const priceBlocks = this.priceLogs(fromBlock).filter((p) => p.block >= minBlock).map((p) => p.block);
-    let last = -1;
-    for (const ev of ["Repay", "Deposit", "WithdrawCollateral", "Borrow"] as const) {
-      const [topic0, userTopic] = encodeEventTopics({ abi: LENDING_ABI, eventName: ev, args: { user: addr } });
-      const logs = this.getLogs(this.cfg.lending, [topic0!, userTopic!], fromBlock);
-      for (const l of logs) last = Math.max(last, roundOfBlock(l.blockNumber, priceBlocks));
+    const pos = this.decodeCall<readonly bigint[]>(LENDING_ABI, "getUserPosition", r[4] as Hex);
+    const commitRaw = this.decodeCall<readonly [Hex, Address, bigint, bigint]>(POLICY_COMMIT_ABI, "commits", r[9] as Hex);
+
+    const startedLogs = this.toLogs(r[12] as never);
+    const startedBlock = startedLogs.length ? startedLogs[0]!.blockNumber : null;
+    const minBlock = startedBlock ?? 0n;
+
+    const priceLogs = this.toLogs(r[13] as never).map((l) => ({
+      price: (decodeEventLog({ abi: LENDING_ABI, eventName: "PriceUpdate", data: l.data, topics: l.topics as [Hex, ...Hex[]] }).args as { newPrice: bigint }).newPrice,
+      block: l.blockNumber,
+    }));
+
+    const priceBlocks = priceLogs.filter((p) => p.block >= minBlock).map((p) => p.block);
+    let lastActionRound = -1;
+    for (const l of this.toLogs(r[14] as never)) {
+      if (l.blockNumber >= minBlock) lastActionRound = Math.max(lastActionRound, roundOfBlock(l.blockNumber, priceBlocks));
     }
-    return last;
-  }
 
-  nonce(addr: Address, tag: "pending" | "latest"): number {
-    return fromHex(this.rpc<Hex>("eth_getTransactionCount", [addr, tag]), "number");
-  }
-
-  private gasPrice(): bigint {
-    const raw = fromHex(this.rpc<Hex>("eth_gasPrice", []), "bigint");
-    return (raw * 125n) / 100n; // legacy gasPrice ×1.25
+    return {
+      blockNumber: fromHex(r[0] as Hex, "bigint"),
+      gasPrice: (fromHex(r[1] as Hex, "bigint") * 125n) / 100n,
+      nonce: fromHex(r[2] as Hex, "number"),
+      price: this.decodeCall<bigint>(LENDING_ABI, "vETHPrice", r[3] as Hex),
+      position: { collateral: pos[0]!, debt: pos[1]! },
+      scenarioStartTime: this.decodeCall<bigint>(LENDING_ABI, "scenarioStartTime", r[5] as Hex),
+      scenarioEndTime: this.decodeCall<bigint>(LENDING_ABI, "scenarioEndTime", r[6] as Hex),
+      challengeOpen: this.decodeCall<boolean>(LENDING_ABI, "challengeOpen", r[7] as Hex),
+      isUser: this.decodeCall<boolean>(LENDING_ABI, "isUser", r[8] as Hex),
+      commit: { hash: commitRaw[0], signer: commitRaw[1] },
+      balances: { vETH: this.decodeCall<bigint>(TOKEN_ABI, "balanceOf", r[10] as Hex), vUSD: this.decodeCall<bigint>(TOKEN_ABI, "balanceOf", r[11] as Hex) },
+      startedBlock,
+      priceLevels: pricesFrom(priceLogs, minBlock),
+      lastActionRound,
+    };
   }
 
   // ---- tx builders (calldata) ----
-  depositTx(amount: bigint): { to: Address; data: Hex } {
+  depositTx(amount: bigint): Tx {
     return { to: this.cfg.lending, data: encodeFunctionData({ abi: LENDING_ABI, functionName: "deposit", args: [amount] }) };
   }
-  repayTx(amount: bigint): { to: Address; data: Hex } {
+  repayTx(amount: bigint): Tx {
     return { to: this.cfg.lending, data: encodeFunctionData({ abi: LENDING_ABI, functionName: "repay", args: [amount] }) };
   }
-  commitTx(hash: Hex, signer: Address): { to: Address; data: Hex } {
+  commitTx(hash: Hex, signer: Address): Tx {
     return { to: this.cfg.policyCommit, data: encodeFunctionData({ abi: POLICY_COMMIT_ABI, functionName: "commit", args: [hash, signer] }) };
   }
-  approveMaxTx(which: "vETH" | "vUSD"): { to: Address; data: Hex } {
-    const token = this.tokenAddrs()[which];
+  approveMaxTx(which: "vETH" | "vUSD"): Tx {
+    const token = which === "vETH" ? this.cfg.vETH : this.cfg.vUSD;
     return { to: token, data: encodeFunctionData({ abi: TOKEN_ABI, functionName: "approve", args: [this.cfg.lending, MAX_UINT256] }) };
   }
   postReceiptTx(receipt: {
     commit: Hex; round: bigint; blockObserved: bigint; price: bigint; hfBp: bigint; action: number; amount: bigint; actionNonce: bigint;
-  }, sig: Hex): { to: Address; data: Hex } {
+  }, sig: Hex): Tx {
     return { to: this.cfg.receipts, data: encodeFunctionData({ abi: RECEIPTS_ABI, functionName: "post", args: [receipt, sig] }) };
   }
 
-  /** Sign a legacy tx in-enclave and broadcast. Returns tx hash. */
-  async send(account: PrivateKeyAccount, tx: { to: Address; data: Hex }, nonce: number): Promise<Hex> {
-    const signed = await account.signTransaction({
+  /** Sign a legacy tx in-enclave (no I/O). */
+  async sign(account: PrivateKeyAccount, tx: Tx, nonce: number, gasPrice: bigint): Promise<Hex> {
+    return account.signTransaction({
       type: "legacy",
       to: tx.to,
       data: tx.data,
       value: 0n,
       gas: GAS_LIMIT,
-      gasPrice: this.gasPrice(),
+      gasPrice,
       nonce,
       chainId: this.cfg.chainId,
     });
-    return this.rpc<Hex>("eth_sendRawTransaction", [signed]);
+  }
+
+  /** REQUEST 2: broadcast every signed tx in one batched JSON-RPC request (ordered by nonce). */
+  sendRawBatch(signed: Hex[]): Hex[] {
+    if (signed.length === 0) return [];
+    const results = this.rpcBatch(signed.map((s) => ({ method: "eth_sendRawTransaction", params: [s] })));
+    return results as Hex[];
   }
 }
