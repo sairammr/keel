@@ -18,6 +18,11 @@ cast balance 0x481ab1C25907dC363d3e6Ee03aE5e651387e9Fe3 --rpc-url https://ethere
 Sepolia faucets: Google Cloud (`cloud.google.com/application/web3/faucet/ethereum/sepolia`),
 Alchemy, or a PoW faucet. ~0.3–0.5 SepETH each is plenty for deploy + a scenario.
 
-## Tx record (filled as we go)
+## Tx record
 
-_(deploy addresses, join tx, commit tx, receipts — appended in P3.4/P3.5)_
+**Staging (clean stack, faithful copy)** — see `addresses.md` for the full deploy + scenario tx list.
+Deploy + a full scenario (commit-before-start → 2 defends + receipts → stop → reveal) ran from
+`keel-demo`-equivalent deployer `0x9673afB9…`. `bun run verify` → ALL ROUNDS CONSISTENT.
+
+**Production (official contract `0x8857…`)** — `keel-prod` `join()` + commit-before-start NOT yet
+executed (irreversible; deferred until the DON deploy path is ready). Recorded here when done.

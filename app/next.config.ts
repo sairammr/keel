@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
       "keel-controller": "../packages/controller/src/index.ts",
       "keel-scenario": "../packages/scenario/src/index.ts",
       "keel-hunter": "../packages/hunter/src/index.ts",
+      "keel-verifier": "../packages/verifier/src/index.ts",
     },
   },
 };

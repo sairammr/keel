@@ -40,6 +40,17 @@
         "bun-types": "^1.4.2",
       },
     },
+    "packages/verifier": {
+      "name": "keel-verifier",
+      "version": "0.1.0",
+      "dependencies": {
+        "keel-controller": "workspace:*",
+        "viem": "^2.17",
+      },
+      "devDependencies": {
+        "bun-types": "^1.4.2",
+      },
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
@@ -113,6 +124,8 @@
     "keel-hunter": ["keel-hunter@workspace:packages/hunter"],
 
     "keel-scenario": ["keel-scenario@workspace:packages/scenario"],
+
+    "keel-verifier": ["keel-verifier@workspace:packages/verifier"],
 
     "ms": ["ms@2.1.3", "", {}, "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="],
 

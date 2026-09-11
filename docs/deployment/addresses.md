@@ -3,36 +3,40 @@
 ## Staging (own faithful copy) — Sepolia, live
 
 Deployer / admin / participant: `0x9673afB923d556979E4dfe6854d8C6e2D9994Eb4`
-Deployed block: 11682586 · RPC: `https://ethereum-sepolia-rpc.publicnode.com`
+RPC: `https://ethereum-sepolia-rpc.publicnode.com` · event scan `fromBlock` 11682850
 
 | Contract | Address |
 |---|---|
-| `ChallengeLending` (faithful copy) | `0x0DCC9ca6262b658E8cbD29bdCe18b5ca370e3949` |
-| `TokenvETH` | `0xE08232A16e7109d276edac850D88ABBFaC6e2F7A` |
-| `TokenvUSD` | `0x236263155D275448fa95BC6295fAb579f099fe76` |
-| `PolicyCommit` | `0xACbf2d364817AB8c42C6573C748702BE0f7aAA6b` |
-| `Receipts` | `0x726717FBe26e1502c5575647d1D46E618e912Aee` |
+| `ChallengeLending` (faithful copy) | `0xbc655f2febC8C9642C69BB746568050f53AAAc18` |
+| `TokenvETH` | `0xd72f799E1af27E0d95aB4B9658A277A7811Fbcd0` |
+| `TokenvUSD` | `0x974727EA649Ee0EfBB6A1b1A584614838B832cB3` |
+| `PolicyCommit` | `0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71` |
+| `Receipts` | `0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6` |
 
 `PolicyCommit` + `Receipts` are protocol-blind and reused by the production target.
+The app (`app/lib/deployment.ts`) and `packages/verifier` point at this stack.
 
 ### Live scenario (real on-chain, `scripts/run-scenario-live.ts`, README crash path)
 
-Commit posted **before** `start()` (commit block 11682596). Undefended position would have liquidated
-at round 3 (`hf100=99 ≤ 100`); Keel defended and survived (hf 118). Debt unchanged all rounds.
+Commit posted **before** `start()` (commit block 11682878). Undefended position would have liquidated
+at rounds 3–5 (`hf100=99/95/93 ≤ 100`); Keel defended and survived (debt unchanged, hf ≥ 111 every round).
+Verified independently: `bun run verify … --from 11682850` → **ALL ROUNDS CONSISTENT**.
 
 | Step | Tx |
 |---|---|
-| `commit` (block 11682596, before start) | [`0x0e24266f…`](https://sepolia.etherscan.io/tx/0x0e24266fca22ea9f03c9201a7f6fe59073947dac8ebed2aea886a9ea96b78427) |
-| `start` | [`0x22bee71f…`](https://sepolia.etherscan.io/tx/0x22bee71fb220fd2cea07cb9a6cbc4857813b451126d809dad94d6e032707e1ec) |
-| round 1 `deposit 51` | [`0x1fb31af0…`](https://sepolia.etherscan.io/tx/0x1fb31af0f3e5e5921326f3cc78e3596ca40889218a2f4043d928d5007d157af9) |
-| round 1 receipt | [`0xa5f3adba…`](https://sepolia.etherscan.io/tx/0xa5f3adbaa40c6d68db4cab8c97a3a22046a6a5e19c97d63c58dc14f57ea1eaae) |
-| round 3 `deposit 46` (undefended would liquidate) | [`0xddbcd43d…`](https://sepolia.etherscan.io/tx/0xddbcd43df9c04f4bb3a9d311f5cf52ce998673ce54c93207c963bc4a508af54b) |
-| round 3 receipt | [`0x825a5b9b…`](https://sepolia.etherscan.io/tx/0x825a5b9b032765e1e6b944b3cf788647cf739de80d8f448ef05e6d5fb542c591) |
-| `stop` | [`0xcdd23dc0…`](https://sepolia.etherscan.io/tx/0xcdd23dc00de2d0aa6184a13c10b2b6d9e1e49a6eee0712c273daf40eee32fc74) |
-| `reveal(policyBytes, salt)` | [`0x914eae20…`](https://sepolia.etherscan.io/tx/0x914eae20cd1c811ffce457e292b055e590ae0df8833749cfae8a4e20ec963234) |
+| `commit` (block 11682878, before start) | [`0xa63f24f2…`](https://sepolia.etherscan.io/tx/0xa63f24f20941a30f7a8010a544249eb12479f1e958a20f4964e4ece486856205) |
+| `start` | [`0x04dd5107…`](https://sepolia.etherscan.io/tx/0x04dd51072cbdcff4f2963cacd880d58dd33b9ad16a53501e253bd11482c617ab) |
+| round 1 `deposit 51` | [`0x12358069…`](https://sepolia.etherscan.io/tx/0x12358069c613d4c36ff89e17ce1c79743f239ea263ded96bd424be216549bc04) |
+| round 1 receipt | [`0x486ccffd…`](https://sepolia.etherscan.io/tx/0x486ccffdc2c2f8b0eddf7473d4c4b9a6b396729a5b3dea784c4d5f397d9034f2) |
+| round 3 `deposit 46` (undefended would liquidate) | [`0xdd78fa34…`](https://sepolia.etherscan.io/tx/0xdd78fa342c61860e643e24f59f6ad1f8e28f49455ce4458de5599d017baf6613) |
+| round 3 receipt | [`0x8ba5a8f0…`](https://sepolia.etherscan.io/tx/0x8ba5a8f0e97c56635a6362cc39574e297848d9ec78f1cfed0ebe6e2d8205cffc) |
+| `stop` | [`0xf76114ea…`](https://sepolia.etherscan.io/tx/0xf76114ea2d73dda64da132254fd8e3d1a673a0ea55c561dc50fed98f59a6bae2) |
+| `reveal(policyBytes, salt)` | [`0xd874ee6b…`](https://sepolia.etherscan.io/tx/0xd874ee6b2c95c28e43b5d3aa9ffbc3431a763987087d5a5cd55a1eac100e8d96) |
 
-`join()` (participant, before this run): [`0x5a663b9a…`](https://sepolia.etherscan.io/tx/0x5a663b9a587f004f70382e00920343a3fc99a596a0db83a4cec78d6dc73b7168).
+Participant `join()` is auto-registered by the faithful contract on deploy (position `(500, 700000, 111)`).
 2 defends, 2 receipts (`Receipts.count == 2`). Salt `0x5a…5a` is a staging salt (revealed above); the production salt stays sealed.
+
+> Prior staging stacks (`0x0DCC…`, and before it `0x486d…`) are abandoned; this is the clean stack the app + verifier read.
 
 ## Production (official contract) — Sepolia
 

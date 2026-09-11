@@ -1,0 +1,17 @@
+{
+  "name": "keel-verifier",
+  "type": "module",
+  "version": "0.1.0",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "keel-controller": "workspace:*",
+    "viem": "^2.17"
+  },
+  "devDependencies": {
+    "bun-types": "^1.4.2"
+  }
+}

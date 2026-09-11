@@ -14,7 +14,8 @@
     "e2e": "bash tests/e2e/e2e.sh",
     "contracts:test": "cd contracts && forge test",
     "rpc-check": "bun run scripts/rpc-check.ts",
-    "codehash": "bun run workflow/src/codehash.ts"
+    "codehash": "bun run workflow/src/codehash.ts",
+    "verify": "bun run packages/verifier/src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",

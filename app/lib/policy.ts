@@ -35,10 +35,6 @@ export function demoSaltBytes(): Uint8Array {
 export const CONTROLLER_CODE_HASH =
   "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88" as `0x${string}`;
 
-// verifyingContract for local EIP-712 receipts (Receipts.sol addr; demo placeholder).
-export const DEMO_RECEIPTS_ADDR =
-  ("0x" + "00".repeat(19) + "01") as `0x${string}`;
-
 // HF = price / 1794.87 at initial C/D. The whole game is a $205 window.
 export const PRICE_DIVISOR = 1794.87;
 export const WINDOW_LOW = 1795; // HF 1.00

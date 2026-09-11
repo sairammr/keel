@@ -1,324 +1,194 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import {
-  commitmentOf,
-  encodePolicyBytes,
-  policyHashOf,
-  signReceipt,
-  recoverReceiptSigner,
-  receiptDigest,
-  type Receipt,
-} from "keel-controller";
-import { runKeel } from "@/lib/engine";
-import {
-  KEEL_POLICY,
-  DEMO_SALT_HEX,
-  CONTROLLER_CODE_HASH,
-  DEMO_RECEIPTS_ADDR,
-  demoSaltBytes,
-} from "@/lib/policy";
-import { byId } from "@/lib/scenarios";
 import LiveOnChain from "@/components/LiveOnChain";
+import { reconstruct, audit, type AuditReport, type ReconstructedRun } from "keel-verifier";
+import { DEPLOYMENT, etherscanTx, etherscanAddr } from "@/lib/deployment";
 
-interface SignedReceipt {
-  receipt: Receipt;
-  digest: `0x${string}`;
-  sig: `0x${string}`;
-  recovered: `0x${string}`;
-  ok: boolean;
-  round: number;
-  kind: string;
-  amountLabel: string;
-  priceUsd: number;
-  hf: number;
-}
+// Re-read the chain at most every 30s. Everything on this page is reconstructed from
+// on-chain events by packages/verifier — no engine, no synthetic data.
+export const revalidate = 30;
 
 const short = (h: string) => `${h.slice(0, 10)}…${h.slice(-8)}`;
+const hf = (bp: bigint) => (Number(bp) / 10000).toFixed(3);
+const ACTION = { 1: "repay", 2: "deposit", 3: "withdraw", 4: "borrow" } as const;
 
-export default function VerifyPage() {
-  const commit = useMemo(
-    () => commitmentOf(KEEL_POLICY, DEMO_SALT_HEX as `0x${string}`, CONTROLLER_CODE_HASH),
-    [],
-  );
-  const policyHash = useMemo(
-    () => policyHashOf(encodePolicyBytes(KEEL_POLICY, CONTROLLER_CODE_HASH)),
-    [],
-  );
-  const run = useMemo(
-    () => runKeel(byId("readme").real, KEEL_POLICY, demoSaltBytes()),
-    [],
-  );
-  const actedTicks = useMemo(() => run.ticks.filter((t) => t.acted).slice(0, 6), [run]);
+export default async function VerifyPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ participant?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const participant = (sp.participant ?? DEPLOYMENT.participant) as `0x${string}`;
 
-  const [signed, setSigned] = useState<SignedReceipt[] | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [revealInput, setRevealInput] = useState(false);
+  let run: ReconstructedRun | null = null;
+  let report: AuditReport | null = null;
+  let error: string | null = null;
+  try {
+    run = await reconstruct({
+      rpcUrl: DEPLOYMENT.rpc,
+      lending: DEPLOYMENT.lending,
+      policyCommit: DEPLOYMENT.policyCommit,
+      receipts: DEPLOYMENT.receipts,
+      participant,
+      fromBlock: DEPLOYMENT.fromBlock,
+    });
+    report = await audit(run, { receiptsAddr: DEPLOYMENT.receipts });
+  } catch (e) {
+    error = String(e instanceof Error ? e.message : e);
+  }
 
-  // Real EIP-712 signing + ecrecover, in the browser.
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      let nonce = 0;
-      const out: SignedReceipt[] = [];
-      for (const t of actedTicks) {
-        const receipt: Receipt = {
-          commit: commit.commit,
-          round: BigInt(t.round),
-          blockObserved: BigInt(9_000_000 + t.round * 5),
-          price: BigInt(Math.round(t.priceUsd * 100)),
-          hfBp: BigInt(t.hfBp),
-          action: t.actionCode ?? 0,
-          amount: BigInt(t.amountRaw ?? "0"),
-          actionNonce: BigInt(nonce++),
-        };
-        const digest = receiptDigest(receipt, DEMO_RECEIPTS_ADDR);
-        const sig = await signReceipt(receipt, commit.receiptKey, DEMO_RECEIPTS_ADDR);
-        const recovered = await recoverReceiptSigner(receipt, sig, DEMO_RECEIPTS_ADDR);
-        out.push({
-          receipt,
-          digest,
-          sig,
-          recovered,
-          ok: recovered.toLowerCase() === commit.signer.toLowerCase(),
-          round: t.round,
-          kind: t.kind ?? "",
-          amountLabel:
-            t.actionCode === 2
-              ? `${(Number(t.amountRaw) / 100).toFixed(2)} vETH`
-              : `${(Number(t.amountRaw) / 100).toFixed(2)} vUSD`,
-          priceUsd: t.priceUsd,
-          hf: t.hfBp / 10000,
-        });
-      }
-      if (alive) setSigned(out);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [actedTicks, commit]);
-
-  const allOk = signed?.every((s) => s.ok) ?? false;
-  const revealCommit = commitmentOf(
-    KEEL_POLICY,
-    DEMO_SALT_HEX as `0x${string}`,
-    CONTROLLER_CODE_HASH,
-  ).commit;
-  const commitMatches = revealCommit === commit.commit;
+  const verdictColor =
+    report?.verdict === "ALL ROUNDS CONSISTENT"
+      ? "var(--color-keel)"
+      : report?.verdict === "NO REVEAL — RECEIPTS ONLY"
+        ? "var(--color-warn)"
+        : "var(--color-danger)";
 
   return (
     <div className="flex flex-col gap-6">
       <header>
         <div className="eyebrow mb-2">03 / verify</div>
-        <h1 className="text-[28px] font-semibold tracking-tight">
-          Commit ⇄ receipts ⇄ reveal
-        </h1>
+        <h1 className="text-[28px] font-semibold tracking-tight">Commit ⇄ receipts ⇄ reveal</h1>
         <p className="mt-2 max-w-[760px] text-[14px] leading-relaxed text-[color:var(--color-muted)]">
-          The whole verifiable-secrecy loop, with real crypto running in your browser —
-          keccak commitment, EIP-712 receipts signed by the sealed receipt key, ecrecover
-          on every one, then a reveal that re-derives the commitment and audits each round
-          against the committed policy.
+          Every value below is reconstructed from Sepolia events by{" "}
+          <span className="mono">packages/verifier</span> — the commitment is read from{" "}
+          <span className="mono">PolicyCommit</span>, each receipt&apos;s signer is recovered from the{" "}
+          <span className="mono">post()</span> tx calldata, the EIP-712 digest is recomputed, and every
+          round&apos;s action is re-checked against the revealed policy. No engine, no placeholder data.
         </p>
       </header>
 
-      {/* live on-chain read from the deployed Sepolia staging contracts */}
+      {/* live commit + receipt count (client read) */}
       <LiveOnChain />
 
-      {/* the sections below are an in-browser DEMO: identical, real cryptography (keccak, EIP-712,
-          ecrecover) run locally over engine-generated data, so the loop is inspectable without a wallet. */}
-      <div className="panel p-3 flex items-center gap-3" style={{ borderColor: "var(--color-warn)" }}>
-        <span className="mono text-[10px] px-2 py-1 border" style={{ borderColor: "var(--color-warn)", color: "var(--color-warn)" }}>
-          DEMO (in-browser)
-        </span>
-        <span className="text-[13px] text-[color:var(--color-muted)]">
-          The three sections below run the same crypto locally over engine-generated data (demo salt).
-          The on-chain panel above is the real deployment.
-        </span>
-      </div>
-
-      {/* commitment card */}
-      <section className="panel p-5">
-        <div className="eyebrow mb-3">1 · commitment (sealed before any action)</div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <Field label="policyHash = keccak(policyBytes)" value={policyHash} />
-          <Field
-            label="commit = keccak(policyHash ‖ salt)"
-            value={commit.commit}
-            accent
-          />
-          <Field label="receipt signer (derived from salt)" value={commit.signer} />
-          <Field
-            label="salt"
-            value={DEMO_SALT_HEX}
-            sub="DEMO SALT — production salt stays sealed"
-          />
+      {error && (
+        <div className="panel p-4 mono text-[12px] text-[color:var(--color-danger)]">
+          verifier error: {error}
         </div>
-      </section>
+      )}
 
-      {/* receipts */}
-      <section className="panel p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="eyebrow">2 · signed receipts · ecrecover === committed signer</div>
-          <span
-            className="mono text-[11px] px-2 py-0.5 border"
-            style={{
-              borderColor: allOk ? "var(--color-keel)" : "var(--color-line)",
-              color: allOk ? "var(--color-keel)" : "var(--color-muted)",
-            }}
-          >
-            {signed ? (allOk ? "ALL VERIFIED ✓" : "MISMATCH") : "signing…"}
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full mono text-[12px]">
-            <thead>
-              <tr className="eyebrow text-left border-b hairline">
-                <th className="py-2 pr-3">round</th>
-                <th className="py-2 pr-3">price</th>
-                <th className="py-2 pr-3">HF</th>
-                <th className="py-2 pr-3">action</th>
-                <th className="py-2 pr-3">nonce</th>
-                <th className="py-2 pr-3">EIP-712 digest</th>
-                <th className="py-2 pr-3">recovered</th>
-                <th className="py-2 pr-3 text-right">ok</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(signed ?? actedTicks.map(() => null)).map((s, i) =>
-                s ? (
-                  <tr key={i} className="border-b hairline last:border-0">
-                    <td className="py-2 pr-3">{String(s.round).padStart(2, "0")}</td>
-                    <td className="py-2 pr-3">${s.priceUsd.toFixed(0)}</td>
-                    <td className="py-2 pr-3">{s.hf.toFixed(3)}</td>
-                    <td className="py-2 pr-3">
-                      <span className="text-[color:var(--color-keel)]">{s.kind}</span>{" "}
-                      {s.amountLabel}
-                    </td>
-                    <td className="py-2 pr-3 text-[color:var(--color-faint)]">
-                      {s.receipt.actionNonce.toString()}
-                    </td>
-                    <td className="py-2 pr-3 text-[color:var(--color-muted)]">
-                      {short(s.digest)}
-                    </td>
-                    <td className="py-2 pr-3 text-[color:var(--color-muted)]">
-                      {short(s.recovered)}
-                    </td>
-                    <td className="py-2 pr-3 text-right">
-                      {s.ok ? (
-                        <span className="text-[color:var(--color-keel)]">✓</span>
-                      ) : (
-                        <span className="text-[color:var(--color-danger)]">✕</span>
-                      )}
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={i} className="border-b hairline last:border-0">
-                    <td colSpan={8} className="py-2 text-[color:var(--color-faint)]">
-                      signing round {i}…
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 eyebrow">
-          nonces are adjacent (0,1,2,…) — no receipt was dropped or reordered
-        </p>
-      </section>
-
-      {/* reveal */}
-      <section className="panel p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="eyebrow">3 · reveal — open the sealed policy & audit</div>
-          {!revealed ? (
-            <button
-              onClick={() => {
-                setRevealInput(true);
-                setTimeout(() => setRevealed(true), 250);
-              }}
-              className="mono text-[12px] px-4 py-2 bg-[color:var(--color-keel)] text-[color:var(--color-bg)] font-semibold hover:opacity-90"
-            >
-              ▶ reveal policy + salt
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setRevealed(false);
-                setRevealInput(false);
-              }}
-              className="mono text-[12px] px-3 py-2 border hairline hover:border-[color:var(--color-line2)]"
-            >
-              re-seal
-            </button>
-          )}
-        </div>
-
-        {!revealInput && (
-          <p className="text-[13px] text-[color:var(--color-muted)]">
-            Before reveal, the commitment above is all anyone has: a single 32-byte hash.
-            No parameter is legible. Press reveal to paste the policy + salt and prove they
-            hash to that exact commitment.
-          </p>
-        )}
-
-        {revealInput && (
-          <div className="flex flex-col gap-4">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="border hairline bg-[color:var(--color-panel2)] p-3">
-                <div className="eyebrow mb-2">revealed policy</div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mono text-[11px]">
-                  {Object.entries(KEEL_POLICY).map(([k, v]) => (
-                    <div key={k} className="flex justify-between">
-                      <span className="text-[color:var(--color-faint)]">{k}</span>
-                      <span>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Field label="revealed salt" value={DEMO_SALT_HEX} />
-                <div
-                  className="border p-3 flex items-center gap-3"
-                  style={{
-                    borderColor: commitMatches
-                      ? "var(--color-keel)"
-                      : "var(--color-danger)",
-                  }}
-                >
-                  <span
-                    className="mono text-[22px]"
-                    style={{
-                      color: commitMatches
-                        ? "var(--color-keel)"
-                        : "var(--color-danger)",
-                    }}
-                  >
-                    {commitMatches ? "✓" : "✕"}
-                  </span>
-                  <div className="text-[12px]">
-                    <div className="mono">
-                      keccak(policyHash ‖ salt) ={" "}
-                      <span className="text-[color:var(--color-muted)]">
-                        {short(revealCommit)}
-                      </span>
-                    </div>
-                    <div className="text-[color:var(--color-muted)]">
-                      {commitMatches
-                        ? "matches the sealed commitment — the number never changed"
-                        : "does not match"}
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {report && run && (
+        <>
+          {/* verdict */}
+          <section className="panel p-5">
+            <div className="flex items-center justify-between">
+              <div className="eyebrow">verifier verdict · participant {short(participant)}</div>
+              <span
+                className="mono text-[12px] px-3 py-1 border font-semibold"
+                style={{ borderColor: verdictColor, color: verdictColor }}
+              >
+                {report.verdict}
+              </span>
             </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <Check label="commitment = keccak(policyHash ‖ salt)" ok={report.commitmentOk} />
+              <Check label="every receipt signer = committed signer" ok={report.signersOk} />
+              <Check label="EIP-712 digests recomputed" ok={report.digestsOk} />
+            </div>
+            {report.liquidated && (
+              <div className="mt-3 mono text-[12px] text-[color:var(--color-danger)]">
+                ⚠ participant was liquidated at least once
+              </div>
+            )}
+          </section>
 
-            {revealed && (
+          {/* commitment */}
+          {run.commit && (
+            <section className="panel p-5">
+              <div className="eyebrow mb-3">1 · commitment (sealed before any action)</div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field
+                  label="committed hash (PolicyCommit.commits)"
+                  value={run.commit.hash}
+                  href={etherscanAddr(DEPLOYMENT.policyCommit)}
+                  accent
+                />
+                <Field
+                  label="receipt signer (derived from salt)"
+                  value={run.commit.signer}
+                  href={etherscanAddr(run.commit.signer)}
+                />
+                <Field label="commit block" value={run.commit.blockNumber.toString()} />
+                <Field
+                  label="reveal"
+                  value={run.reveal ? "revealed on-chain — policy + salt public" : "sealed (not yet revealed)"}
+                  sub={run.reveal ? undefined : "production salt stays sealed until scores publish"}
+                />
+              </div>
+            </section>
+          )}
+
+          {/* receipts */}
+          <section className="panel p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="eyebrow">
+                2 · signed receipts · ecrecover === committed signer
+              </div>
+              <span
+                className="mono text-[11px] px-2 py-0.5 border"
+                style={{
+                  borderColor: report.signersOk ? "var(--color-keel)" : "var(--color-danger)",
+                  color: report.signersOk ? "var(--color-keel)" : "var(--color-danger)",
+                }}
+              >
+                {report.signersOk ? "ALL VERIFIED ✓" : "SIGNER MISMATCH"}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full mono text-[12px]">
+                <thead>
+                  <tr className="eyebrow text-left border-b hairline">
+                    <th className="py-2 pr-3">round</th>
+                    <th className="py-2 pr-3">price</th>
+                    <th className="py-2 pr-3">HF</th>
+                    <th className="py-2 pr-3">action</th>
+                    <th className="py-2 pr-3">nonce</th>
+                    <th className="py-2 pr-3">digest</th>
+                    <th className="py-2 pr-3">tx</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {run.receipts.map((r, i) => (
+                    <tr key={i} className="border-b hairline last:border-0">
+                      <td className="py-2 pr-3">{r.receipt.round.toString().padStart(2, "0")}</td>
+                      <td className="py-2 pr-3">${(Number(r.receipt.price) / 100).toFixed(0)}</td>
+                      <td className="py-2 pr-3">{hf(r.receipt.hfBp)}</td>
+                      <td className="py-2 pr-3 text-[color:var(--color-keel)]">
+                        {ACTION[r.receipt.action as 1 | 2 | 3 | 4]} {(Number(r.receipt.amount) / 100).toFixed(2)}
+                      </td>
+                      <td className="py-2 pr-3 text-[color:var(--color-faint)]">
+                        {r.receipt.actionNonce.toString()}
+                      </td>
+                      <td className="py-2 pr-3 text-[color:var(--color-muted)]">{short(r.digest)}</td>
+                      <td className="py-2 pr-3">
+                        <a
+                          className="underline text-[color:var(--color-muted)]"
+                          href={etherscanTx(r.txHash)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {short(r.txHash)}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                  {run.receipts.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="py-2 text-[color:var(--color-faint)]">
+                        no receipts posted yet
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* per-round audit */}
+          {report.rows.length > 0 ? (
+            <section className="panel p-5">
+              <div className="eyebrow mb-3">
+                3 · reveal — per-round audit · trigger in force vs action taken
+              </div>
               <div className="overflow-x-auto">
-                <div className="eyebrow mb-2">
-                  per-round audit · trigger in force vs action taken
-                </div>
                 <table className="w-full mono text-[12px]">
                   <thead>
                     <tr className="eyebrow text-left border-b hairline">
@@ -327,61 +197,62 @@ export default function VerifyPage() {
                       <th className="py-2 pr-3">HF</th>
                       <th className="py-2 pr-3">arm (trigger)</th>
                       <th className="py-2 pr-3">target</th>
-                      <th className="py-2 pr-3">decision</th>
+                      <th className="py-2 pr-3">acted</th>
+                      <th className="py-2 pr-3">expected</th>
                       <th className="py-2 pr-3 text-right">matches policy</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {run.ticks.map((t) => {
-                      const triggered = t.hfBp <= t.armBp;
-                      const consistent = triggered === t.acted || t.emergency;
-                      return (
-                        <tr key={t.round} className="border-b hairline last:border-0">
-                          <td className="py-1.5 pr-3">
-                            {String(t.round).padStart(2, "0")}
-                          </td>
-                          <td className="py-1.5 pr-3">${t.priceUsd.toFixed(0)}</td>
-                          <td className="py-1.5 pr-3">
-                            {(t.hfBp / 10000).toFixed(3)}
-                          </td>
-                          <td className="py-1.5 pr-3 text-[color:var(--color-keel)]">
-                            {(t.armBp / 10000).toFixed(3)}
-                          </td>
-                          <td className="py-1.5 pr-3 text-[color:var(--color-faint)]">
-                            {(t.targetBp / 10000).toFixed(3)}
-                          </td>
-                          <td className="py-1.5 pr-3">
-                            {t.acted ? (
-                              <span className="text-[color:var(--color-keel)]">
-                                {t.reason} · {t.kind} ${t.amountUsd?.toFixed(0)}
-                              </span>
-                            ) : (
-                              <span className="text-[color:var(--color-muted)]">
-                                {t.reason}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-1.5 pr-3 text-right">
-                            {consistent ? (
-                              <span className="text-[color:var(--color-keel)]">✓</span>
-                            ) : (
-                              <span className="text-[color:var(--color-danger)]">✕</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {report.rows.map((r) => (
+                      <tr key={r.round} className="border-b hairline last:border-0">
+                        <td className="py-1.5 pr-3">{String(r.round).padStart(2, "0")}</td>
+                        <td className="py-1.5 pr-3">${(Number(r.price) / 100).toFixed(0)}</td>
+                        <td className="py-1.5 pr-3">{hf(r.hfBpPre)}</td>
+                        <td className="py-1.5 pr-3 text-[color:var(--color-keel)]">{hf(r.armBp)}</td>
+                        <td className="py-1.5 pr-3 text-[color:var(--color-faint)]">{hf(r.targetBp)}</td>
+                        <td className="py-1.5 pr-3">{r.acted ? "Y" : "·"}</td>
+                        <td className="py-1.5 pr-3">{r.expectedAct ? "Y" : "·"}</td>
+                        <td className="py-1.5 pr-3 text-right">
+                          {r.consistent ? (
+                            <span className="text-[color:var(--color-keel)]">✓</span>
+                          ) : (
+                            <span className="text-[color:var(--color-danger)]">✕</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
-                <p className="mt-3 eyebrow">
-                  every action fired exactly when HF crossed the now-revealed trigger — the
-                  policy that produced the receipts is the policy under the commitment
-                </p>
               </div>
-            )}
-          </div>
-        )}
-      </section>
+              <p className="mt-3 eyebrow">
+                every action fired exactly when HF crossed the now-revealed trigger — the policy that
+                produced the receipts is the policy under the commitment
+              </p>
+            </section>
+          ) : (
+            <section className="panel p-5">
+              <div className="eyebrow mb-2">3 · reveal</div>
+              <p className="text-[13px] text-[color:var(--color-muted)]">
+                Not yet revealed. Before reveal the commitment above is all anyone has — a single 32-byte
+                hash. The per-round audit unlocks once <span className="mono">reveal(policy, salt)</span> is
+                posted on-chain.
+              </p>
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function Check({ label, ok }: { label: string; ok?: boolean }) {
+  const color = ok === undefined ? "var(--color-muted)" : ok ? "var(--color-keel)" : "var(--color-danger)";
+  return (
+    <div className="border hairline bg-[color:var(--color-panel2)] p-3 flex items-center gap-2">
+      <span className="mono text-[16px]" style={{ color }}>
+        {ok === undefined ? "—" : ok ? "✓" : "✕"}
+      </span>
+      <span className="text-[12px] text-[color:var(--color-muted)]">{label}</span>
     </div>
   );
 }
@@ -390,11 +261,13 @@ function Field({
   label,
   value,
   sub,
+  href,
   accent,
 }: {
   label: string;
   value: string;
   sub?: string;
+  href?: string;
   accent?: boolean;
 }) {
   return (
@@ -404,11 +277,15 @@ function Field({
         className="mono text-[12px] break-all"
         style={{ color: accent ? "var(--color-keel)" : "var(--color-ink)" }}
       >
-        {value}
+        {href ? (
+          <a className="underline" href={href} target="_blank" rel="noreferrer">
+            {value}
+          </a>
+        ) : (
+          value
+        )}
       </div>
-      {sub && (
-        <div className="mono text-[10px] mt-1 text-[color:var(--color-warn)]">{sub}</div>
-      )}
+      {sub && <div className="mono text-[10px] mt-1 text-[color:var(--color-warn)]">{sub}</div>}
     </div>
   );
 }
