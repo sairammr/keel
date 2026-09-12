@@ -113,7 +113,44 @@ cre workflow simulate workflow --target staging-settings --non-interactive --tri
   --evm-tx-hash 0x85b86646f0fc9dda99d5c6c94e35cff92ef3e7abf84e750f64781a775e88a38a --evm-event-index 0
 ```
 
-## 8. Demo runbook (full product, ~4 min — matches the video beats)
+## 8a. LIVE-EXECUTION recording (rehearsed once end-to-end — ALL ROUNDS CONSISTENT)
+
+The frontend only *reads*; execution footage comes from a live scenario on our own staging
+copy where the REAL workflow defends while an admin driver moves the price. Rehearsal run
+(stack `0x54CeD8b6…`) proved the whole loop: workflow commit-first-tick → DEFENDED at $1850
+(deposit 0.88 vETH) → EMERGENCY at $1550 (deposit 0.84) → disciplined holds (cooldown) →
+survived every `checkAllHF` → reveal → verifier → **ALL ROUNDS CONSISTENT**.
+
+A FRESH recording stack is already deployed, joined, and wired into
+`workflow/config.staging.json` (one-shot — if a take is burned, redeploy: §8a-reset):
+lending `0x120B38894c5d340a65160d4670baDc6E1128ea5c`, PolicyCommit `0x6E9b664f…`,
+Receipts `0x3734775f…`. Participant `keel-demo` joined; salt in `.env.demo` is fresh.
+
+Record two terminals + one browser (Etherscan on the lending address):
+
+```bash
+# Terminal A — the workflow (starts by COMMITTING on camera, then defends by itself)
+cd ~/Documents/GitHub/keel && ./scripts/fallback-runner.sh staging-settings 30 .env.demo
+
+# Terminal B — admin driver: waits for the commit, then start → 5 price rounds → checkAllHF
+# → stop → auto-reveal → prints the verify command. ~8 minutes total (75s/round).
+cd ~/Documents/GitHub/keel && set -a && source .env.deploy && source .env.demo && set +a \
+  && bun run scripts/demo-live.ts
+
+# After it prints the verify command, run it on camera → ALL ROUNDS CONSISTENT.
+```
+
+Money shots: Terminal A flipping `IDLE → COMMITTED → SAFE → DEFENDED → … → EMERGENCY`;
+Etherscan filling with deposit + receipt txs the enclave signed; the final verifier table
+showing every act/hold matches the revealed policy (incl. cooldown holds).
+
+**§8a-reset** (fresh take): `cd contracts && PRIVATE_KEY=$KEEL_DEPLOY_KEY forge script
+script/Deploy.s.sol --rpc-url <rpc> --broadcast`, then join from `keel-demo`, update the five
+addresses + `startBlock` in `workflow/config.staging.json`, and put a fresh `KEEL_SALT` in
+`.env.demo`. `.env.demo` note: KEEL_POLICY must stay single-quoted (bash `source` eats inner
+quotes otherwise; cre's own --env parser accepts either).
+
+## 8b. Reading-layer demo (app + recorded proof, ~4 min — matches the video beats)
 
 One-time prep (before recording):
 
@@ -175,7 +212,7 @@ bun run scripts/eval-official.ts
 **6. The close (~15s)** — Etherscan on the OFFICIAL contract: join tx + commit tx (block 11691103,
 before start). *"Joined, sealed, unpredictable, provable. KEEL."*
 
-## 9. Layout
+## 10. Layout
 
 ```
 packages/{controller,scenario,hunter,verifier}   pure TS core + engine + attacker + auditor
