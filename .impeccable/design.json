@@ -4,37 +4,43 @@
   "title": "Design System: KEEL",
   "extensions": {
     "colorMeta": {
-      "ink": { "role": "neutral", "displayName": "Deep Ink", "canonical": "#0d1826", "tonalRamp": ["oklch(15% 0.03 250)", "oklch(22% 0.035 250)", "oklch(32% 0.04 250)", "oklch(44% 0.04 250)", "oklch(56% 0.035 250)", "oklch(68% 0.03 250)", "oklch(82% 0.02 250)", "oklch(95% 0.01 250)"] },
-      "ink-raised": { "role": "neutral", "displayName": "Raised Ink", "canonical": "#131f31", "tonalRamp": ["oklch(17% 0.035 255)", "oklch(24% 0.04 255)", "oklch(34% 0.045 255)", "oklch(46% 0.045 255)", "oklch(58% 0.04 255)", "oklch(70% 0.03 255)", "oklch(83% 0.02 255)", "oklch(95% 0.01 255)"] },
+      "ink": { "role": "neutral", "displayName": "Deep Ink", "canonical": "#0b1522", "tonalRamp": ["oklch(14% 0.03 250)", "oklch(21% 0.035 250)", "oklch(31% 0.04 250)", "oklch(43% 0.04 250)", "oklch(55% 0.035 250)", "oklch(67% 0.03 250)", "oklch(81% 0.02 250)", "oklch(95% 0.01 250)"] },
+      "ink-2": { "role": "neutral", "displayName": "Mid Ink", "canonical": "#101d2f", "tonalRamp": ["oklch(16% 0.035 252)", "oklch(23% 0.04 252)", "oklch(33% 0.045 252)", "oklch(45% 0.045 252)", "oklch(57% 0.04 252)", "oklch(69% 0.03 252)", "oklch(82% 0.02 252)", "oklch(95% 0.01 252)"] },
+      "ink-3": { "role": "neutral", "displayName": "Raised Ink", "canonical": "#16263c", "tonalRamp": ["oklch(18% 0.04 255)", "oklch(26% 0.045 255)", "oklch(36% 0.05 255)", "oklch(48% 0.05 255)", "oklch(60% 0.045 255)", "oklch(71% 0.035 255)", "oklch(83% 0.02 255)", "oklch(95% 0.01 255)"] },
       "cream": { "role": "neutral", "displayName": "Cream Ink", "canonical": "#f3e7cf", "tonalRamp": ["oklch(20% 0.02 85)", "oklch(32% 0.03 85)", "oklch(45% 0.04 85)", "oklch(58% 0.04 85)", "oklch(70% 0.04 85)", "oklch(80% 0.04 85)", "oklch(88% 0.035 85)", "oklch(94% 0.025 85)"] },
       "gold": { "role": "primary", "displayName": "Harbor Gold", "canonical": "#e6b36b", "tonalRamp": ["oklch(25% 0.06 75)", "oklch(37% 0.08 75)", "oklch(48% 0.1 75)", "oklch(58% 0.11 75)", "oklch(68% 0.11 75)", "oklch(78% 0.1 75)", "oklch(87% 0.07 75)", "oklch(94% 0.04 75)"] },
       "gold-bright": { "role": "primary", "displayName": "Pale Gold", "canonical": "#f0c586", "tonalRamp": ["oklch(28% 0.06 78)", "oklch(40% 0.08 78)", "oklch(52% 0.1 78)", "oklch(63% 0.1 78)", "oklch(73% 0.1 78)", "oklch(82% 0.09 78)", "oklch(89% 0.06 78)", "oklch(95% 0.03 78)"] },
       "ember": { "role": "secondary", "displayName": "Ember", "canonical": "#d4695a", "tonalRamp": ["oklch(24% 0.08 30)", "oklch(35% 0.11 30)", "oklch(46% 0.13 30)", "oklch(56% 0.14 30)", "oklch(65% 0.13 30)", "oklch(75% 0.1 30)", "oklch(85% 0.07 30)", "oklch(93% 0.04 30)"] },
-      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "rgba(243, 231, 207, 0.14)", "tonalRamp": ["rgba(243,231,207,0.06)", "rgba(243,231,207,0.1)", "rgba(243,231,207,0.14)", "rgba(243,231,207,0.25)", "rgba(243,231,207,0.4)", "rgba(243,231,207,0.58)", "rgba(243,231,207,0.64)", "rgba(243,231,207,1)"] }
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "rgba(243, 231, 207, 0.13)", "tonalRamp": ["rgba(243,231,207,0.06)", "rgba(243,231,207,0.1)", "rgba(243,231,207,0.13)", "rgba(243,231,207,0.25)", "rgba(243,231,207,0.42)", "rgba(243,231,207,0.55)", "rgba(243,231,207,0.72)", "rgba(243,231,207,1)"] }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "The hero wordmark only." },
-      "headline": { "displayName": "Headline", "purpose": "Section headings above a hairline top-rule." },
-      "body": { "displayName": "Body", "purpose": "Essay prose, 66ch max measure; italics render gold." },
-      "label": { "displayName": "Label", "purpose": "Uppercase ledger slip titles only." },
-      "data": { "displayName": "Data", "purpose": "Hashes, blocks, HF values, commands; tabular numerals." }
+      "display": { "displayName": "Display", "purpose": "Hero headline and nav wordmark; Gloock exists at 400 only." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings, often with an authored line break; line-mask rise on entry." },
+      "body": { "displayName": "Body", "purpose": "All reading and UI text; 700-weight lead-ins inside fact rows; emphasis is gold, never italic." },
+      "label": { "displayName": "Label", "purpose": "Nav links and small UI at grotesk 500-600." },
+      "data": { "displayName": "Data", "purpose": "Chain data only: hashes, blocks, HF values, stats, commands, the verdict; tabular numerals." }
     },
     "shadows": [
-      { "name": "button-lift", "value": "0 6px 24px rgba(13, 24, 38, 0.45)", "purpose": "Primary button at rest; deepens to 0 10px 30px rgba(13,24,38,0.5) with translateY(-1px) on hover." },
-      { "name": "terminal-weight", "value": "0 18px 50px rgba(0, 0, 0, 0.35)", "purpose": "The terminal block only." },
-      { "name": "sky-legibility", "value": "text-shadow: 0 4px 40px rgba(13, 24, 38, 0.6)", "purpose": "Hero text over the sky artwork; softer variants on thesis and subline." }
+      { "name": "strip-float", "value": "0 30px 70px rgba(0, 0, 0, 0.45)", "purpose": "The stat strip floating over the hero seam." },
+      { "name": "terminal-weight", "value": "0 26px 70px rgba(0, 0, 0, 0.45)", "purpose": "The terminal block only." },
+      { "name": "button-lift", "value": "0 8px 28px rgba(11, 21, 34, 0.5)", "purpose": "Primary button at rest; hover deepens to 0 12px 34px rgba(11,21,34,0.55) with translateY(-1px)." },
+      { "name": "sky-legibility", "value": "text-shadow: 0 6px 50px rgba(11, 21, 34, 0.65)", "purpose": "Hero text over the sky artwork; drop-shadow under the hero ship." }
     ],
     "motion": [
-      { "name": "micro-ease", "value": "160ms ease", "purpose": "Hover transitions on buttons, chips, links." },
-      { "name": "slip-file-in", "value": "GSAP from { x: 48, opacity: 0, rotate: settle+2.5deg } power3.out 0.75s, once", "purpose": "Signature: ledger slips file in from the right and pin at their settle rotation on scroll entry." },
-      { "name": "figure-draw", "value": "GSAP DrawSVG, once per figure on entry", "purpose": "Chart lines draw themselves a single time; no loops, no pinning." },
-      { "name": "hero-entrance", "value": "GSAP timeline power3.out, staggered y/opacity; ship slides in x:-60", "purpose": "One quiet entrance on load. All motion disabled by prefers-reduced-motion and ?nomotion." }
+      { "name": "micro-ease", "value": "160ms ease (240ms for nav solidify)", "purpose": "Hover and state transitions on buttons, chips, cards, nav." },
+      { "name": "headline-mask-rise", "value": "SplitText lines, yPercent 110-115, power3.out 0.85-1s, stagger ~0.1, once", "purpose": "Hero and section headlines rise through line masks on entry." },
+      { "name": "rise-in", "value": "GSAP batch from { y: 30, opacity: 0 } power3.out 0.7s, stagger 0.08, once", "purpose": "Default entrance for subs, cards, fact rows, terminal, close elements." },
+      { "name": "count-up", "value": "GSAP to target over 1.6s power2.out, once, toLocaleString", "purpose": "Stat strip numbers count from zero on entry." },
+      { "name": "storm-scrub", "value": "pinned timeline, scrub 0.7, end +=150%; DrawSVG lines, back.out(2) marker pops", "purpose": "THE one scrubbed showpiece: the storm chart draws under scroll. Never add a second pin." },
+      { "name": "hero-parallax", "value": "sky yPercent 14 / copy yPercent -12 + fade, scrub 0.8", "purpose": "Gentle parallax out of the hero; sky scale-settles 1.08 to 1 on load. All motion disabled by prefers-reduced-motion and ?nomotion." }
     ],
     "breakpoints": [
-      { "name": "ledger-fold", "value": "900px", "purpose": "Ledger folds under the prose as a wrapping row; slip rotation removed." },
-      { "name": "close-stack", "value": "760px", "purpose": "Close cards stack to one column." },
-      { "name": "compact", "value": "720px", "purpose": "Nav links hide; hero drops to 56vh; small sky raster loads." },
-      { "name": "fig-scroll", "value": "640px", "purpose": "Wide figures scroll horizontally at min-width 600px." }
+      { "name": "stats-fold", "value": "900px", "purpose": "Stat strip 4-up to 2-up." },
+      { "name": "split-fold", "value": "880px", "purpose": "Leak/enclave splits and jitter cards to 1 column; pipeline 2-up, connector line hidden." },
+      { "name": "nav-compact", "value": "760px", "purpose": "Nav links hide." },
+      { "name": "sky-small", "value": "720px", "purpose": "Small sky raster loads; close cards stack." },
+      { "name": "chart-scroll", "value": "640px", "purpose": "Storm chart scrolls horizontally at min-width 600px." },
+      { "name": "pipe-single", "value": "560px", "purpose": "Pipeline steps to 1 column." }
     ]
   },
   "components": [
@@ -44,39 +50,55 @@
       "refersTo": "button-primary",
       "description": "The gold call-to-action; the only button that casts a shadow.",
       "html": "<a class=\"ds-btn-primary\" href=\"#\">Verify the live run</a>",
-      "css": ".ds-btn-primary { display: inline-block; background: #e6b36b; color: #0d1826; font-family: Fraunces, Georgia, serif; font-weight: 560; font-size: 0.95rem; text-decoration: none; padding: 0.72rem 1.5rem; border-radius: 3px; box-shadow: 0 6px 24px rgba(13, 24, 38, 0.45); transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; } .ds-btn-primary:hover { background: #f0c586; transform: translateY(-1px); box-shadow: 0 10px 30px rgba(13, 24, 38, 0.5); } .ds-btn-primary:focus-visible { outline: 2px solid #e6b36b; outline-offset: 3px; border-radius: 2px; }"
+      "css": ".ds-btn-primary { display: inline-block; background: #e6b36b; color: #0b1522; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; font-weight: 700; font-size: 0.95rem; text-decoration: none; padding: 0.78rem 1.6rem; border-radius: 6px; box-shadow: 0 8px 28px rgba(11, 21, 34, 0.5); transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; } .ds-btn-primary:hover { background: #f0c586; transform: translateY(-1px); box-shadow: 0 12px 34px rgba(11, 21, 34, 0.55); } .ds-btn-primary:focus-visible { outline: 2px solid #e6b36b; outline-offset: 3px; border-radius: 2px; }"
     },
     {
       "name": "Ghost Button",
       "kind": "button",
       "refersTo": "button-ghost",
-      "description": "Quiet secondary action; cream border turns gold on hover.",
+      "description": "Blurred translucent secondary action; border and text turn gold on hover.",
       "html": "<a class=\"ds-btn-ghost\" href=\"#\">Read the source</a>",
-      "css": ".ds-btn-ghost { display: inline-block; background: transparent; color: #f3e7cf; font-family: Fraunces, Georgia, serif; font-size: 0.95rem; text-decoration: none; padding: 0.72rem 1.2rem; border: 1px solid rgba(243, 231, 207, 0.4); border-radius: 3px; transition: border-color 160ms ease, color 160ms ease; } .ds-btn-ghost:hover { border-color: #e6b36b; color: #e6b36b; } .ds-btn-ghost:focus-visible { outline: 2px solid #e6b36b; outline-offset: 3px; }"
+      "css": ".ds-btn-ghost { display: inline-block; color: #f3e7cf; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; font-size: 0.95rem; font-weight: 600; text-decoration: none; padding: 0.78rem 1.3rem; border: 1px solid rgba(243, 231, 207, 0.42); border-radius: 6px; background: rgba(11, 21, 34, 0.3); backdrop-filter: blur(4px); transition: border-color 160ms ease, color 160ms ease; } .ds-btn-ghost:hover { border-color: #e6b36b; color: #e6b36b; } .ds-btn-ghost:focus-visible { outline: 2px solid #e6b36b; outline-offset: 3px; }"
     },
     {
-      "name": "Ledger Slip",
-      "kind": "card",
-      "refersTo": "slip",
-      "description": "Signature margin artifact: an on-chain fact pinned beside the passage that cites it.",
-      "html": "<div class=\"ds-slip\"><h3 class=\"ds-slip-title\">Commit — before the start</h3><p class=\"ds-slip-big\">block 11,682,878</p><a class=\"ds-slip-link\" href=\"#\">0xa63f24f2…6205</a><p class=\"ds-slip-note\">wrong-salt reveals revert; the commitment must match.</p></div>",
-      "css": ".ds-slip { border: 1px solid rgba(243, 231, 207, 0.14); border-radius: 4px; background: rgba(19, 31, 49, 0.55); padding: 1.05rem 1.15rem; rotate: 0.4deg; max-width: 19rem; font-family: Fraunces, Georgia, serif; } .ds-slip-title { font-size: 0.78rem; font-weight: 560; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(243, 231, 207, 0.64); margin: 0 0 0.55rem; } .ds-slip-big { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 1.18rem; color: #e6b36b; margin: 0 0 0.35rem; } .ds-slip-link { display: block; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.8rem; color: #e6b36b; margin: 0.3rem 0; overflow-wrap: anywhere; } .ds-slip-note { font-size: 0.84rem; line-height: 1.55; color: rgba(243, 231, 207, 0.64); margin: 0; }"
-    },
-    {
-      "name": "Slip Table",
+      "name": "Stat Tile",
       "kind": "custom",
-      "refersTo": "slip",
-      "description": "Tabular numerals inside a slip; danger rows go ember.",
-      "html": "<table class=\"ds-slip-table\"><tr><td>HF 1.114</td><td>$2,000</td></tr><tr><td>HF 1.08</td><td>$1,938</td></tr><tr class=\"danger\"><td>HF 1.00</td><td>$1,795</td></tr></table>",
-      "css": ".ds-slip-table { width: 100%; border-collapse: collapse; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 0.84rem; } .ds-slip-table td { padding: 0.32rem 0; border-bottom: 1px solid rgba(243, 231, 207, 0.14); color: #f3e7cf; } .ds-slip-table td:last-child { text-align: right; color: rgba(243, 231, 207, 0.64); } .ds-slip-table tr:last-child td { border-bottom: none; } .ds-slip-table tr.danger td { color: #d4695a; }"
+      "refersTo": "stat",
+      "description": "One tile of the signature stat strip; gold mono number counts up on entry.",
+      "html": "<div class=\"ds-stat\"><b>11,682,878</b><span>commit block — before the start</span></div>",
+      "css": ".ds-stat { background: rgba(16, 29, 47, 0.92); backdrop-filter: blur(8px); padding: 1.3rem 1.4rem; border: 1px solid rgba(243, 231, 207, 0.13); border-radius: 10px; max-width: 18rem; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; } .ds-stat b { display: block; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 500; font-variant-numeric: tabular-nums; font-size: 1.5rem; color: #e6b36b; margin-bottom: 0.3rem; } .ds-stat span { font-size: 0.82rem; color: rgba(243, 231, 207, 0.72); line-height: 1.45; display: block; }"
+    },
+    {
+      "name": "Feature Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Jitter-row card: gold title, quiet copy, gold-dim lift on hover.",
+      "html": "<div class=\"ds-card\"><h3>Upward only</h3><p>Jitter can fire the defence earlier, never later. Cleverness never costs survival.</p></div>",
+      "css": ".ds-card { border: 1px solid rgba(243, 231, 207, 0.13); border-radius: 10px; background: rgba(11, 21, 34, 0.55); padding: 1.5rem 1.5rem 1.4rem; max-width: 22rem; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; transition: border-color 200ms ease, transform 200ms ease; } .ds-card:hover { border-color: rgba(230, 179, 107, 0.35); transform: translateY(-2px); } .ds-card h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; color: #e6b36b; } .ds-card p { font-size: 0.94rem; line-height: 1.55; color: rgba(243, 231, 207, 0.72); margin: 0; }"
+    },
+    {
+      "name": "Pipeline Step",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Numbered proof step with a pill badge straddling the top border and a tx link.",
+      "html": "<div class=\"ds-pstep\"><span class=\"ds-pstep-num\">01</span><h3>Commit</h3><p><code>keccak256(policyHash ‖ salt)</code> lands before the scenario starts.</p><a class=\"ds-tx\" href=\"#\">block 11,682,878 ↗</a></div>",
+      "css": ".ds-pstep { position: relative; border: 1px solid rgba(243, 231, 207, 0.13); border-radius: 10px; background: rgba(16, 29, 47, 0.6); padding: 1.5rem 1.4rem 1.3rem; margin-top: 1.4rem; max-width: 20rem; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; } .ds-pstep-num { position: absolute; top: -0.9rem; left: 1.35rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.78rem; color: #e6b36b; background: #0b1522; padding: 0.15rem 0.5rem; border: 1px solid rgba(230, 179, 107, 0.35); border-radius: 999px; } .ds-pstep h3 { font-size: 1.02rem; font-weight: 700; color: #f3e7cf; margin: 0 0 0.45rem; } .ds-pstep p { font-size: 0.9rem; line-height: 1.55; color: rgba(243, 231, 207, 0.72); margin: 0 0 0.7rem; } .ds-pstep code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.86em; color: #e6b36b; } .ds-tx { display: inline-block; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.78rem; color: #e6b36b; text-decoration: none; border-bottom: 1px solid rgba(230, 179, 107, 0.35); padding-bottom: 1px; } .ds-tx:hover { color: #f3e7cf; border-color: #f3e7cf; }"
+    },
+    {
+      "name": "Fact List",
+      "kind": "custom",
+      "refersTo": "cream-70",
+      "description": "Hairline-ruled fact rows with bold lead-ins; replaces bullets everywhere.",
+      "html": "<ul class=\"ds-facts\"><li><b>AWS Nitro · us-west-2</b> — Chainlink CRE confidential <code>handlerInTee</code></li><li><b>2 of ≤5</b> — HTTP calls per tick: one batched read, one batched send</li></ul>",
+      "css": ".ds-facts { list-style: none; margin: 0; padding: 0; max-width: 26rem; font-family: 'Schibsted Grotesk', -apple-system, sans-serif; } .ds-facts li { padding: 0.95rem 0; border-top: 1px solid rgba(243, 231, 207, 0.13); font-size: 0.94rem; line-height: 1.55; color: rgba(243, 231, 207, 0.72); } .ds-facts li:last-child { border-bottom: 1px solid rgba(243, 231, 207, 0.13); } .ds-facts b { color: #f3e7cf; font-weight: 700; margin-right: 0.4rem; } .ds-facts code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.86em; color: #e6b36b; }"
     },
     {
       "name": "Terminal",
       "kind": "custom",
-      "refersTo": "term",
-      "description": "Real command output framed as evidence; gold bolds the verdict word.",
+      "refersTo": "ink-3",
+      "description": "Real command output framed as evidence; gold bolds the status word.",
       "html": "<div class=\"ds-term\"><div class=\"ds-term-bar\"><span>cre workflow simulate workflow --target staging-settings</span></div><pre class=\"ds-term-body\">✓ Workflow compiled\nstatus: <b>DEFENDED</b></pre></div>",
-      "css": ".ds-term { border: 1px solid rgba(243, 231, 207, 0.14); border-radius: 6px; overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); } .ds-term-bar { padding: 0.6rem 1rem; background: #1a2436; } .ds-term-bar span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.78rem; color: rgba(243, 231, 207, 0.64); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-term-body { margin: 0; padding: 1.2rem 1.25rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.8rem; line-height: 1.65; color: #f3e7cf; background: #0a1220; overflow-x: auto; } .ds-term-body b { color: #e6b36b; font-weight: 600; }"
+      "css": ".ds-term { border: 1px solid rgba(243, 231, 207, 0.13); border-radius: 10px; overflow: hidden; box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45); } .ds-term-bar { padding: 0.65rem 1.1rem; background: #16263c; } .ds-term-bar span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.78rem; color: rgba(243, 231, 207, 0.72); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-term-body { margin: 0; padding: 1.25rem 1.3rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.8rem; line-height: 1.7; color: #f3e7cf; background: #081120; overflow-x: auto; } .ds-term-body b { color: #e6b36b; font-weight: 600; }"
     },
     {
       "name": "Nav Chip",
@@ -84,47 +106,39 @@
       "refersTo": "button-ghost",
       "description": "Small bordered chip in the fixed nav (GitHub link).",
       "html": "<a class=\"ds-nav-gh\" href=\"#\">GitHub</a>",
-      "css": ".ds-nav-gh { font-family: Fraunces, Georgia, serif; font-size: 0.82rem; color: #f3e7cf; text-decoration: none; border: 1px solid rgba(230, 179, 107, 0.35); border-radius: 3px; padding: 0.32rem 0.85rem; transition: border-color 160ms ease, color 160ms ease; } .ds-nav-gh:hover { border-color: #e6b36b; color: #e6b36b; }"
-    },
-    {
-      "name": "Formula Box",
-      "kind": "custom",
-      "refersTo": "ink-raised",
-      "description": "Inline math or code set apart in a dim-gold frame.",
-      "html": "<p class=\"ds-formula\"><code>trigger = clamp(base + k·σ + jitter(HMAC(salt, round)))</code></p>",
-      "css": ".ds-formula { border: 1px solid rgba(230, 179, 107, 0.35); border-radius: 4px; background: #131f31; padding: 1rem 1.25rem; overflow-x: auto; margin: 0; } .ds-formula code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.95rem; color: #e6b36b; }"
+      "css": ".ds-nav-gh { font-family: 'Schibsted Grotesk', -apple-system, sans-serif; font-size: 0.84rem; font-weight: 600; color: #f3e7cf; text-decoration: none; border: 1px solid rgba(230, 179, 107, 0.35); border-radius: 5px; padding: 0.35rem 0.9rem; transition: border-color 160ms ease, color 160ms ease; } .ds-nav-gh:hover { border-color: #e6b36b; color: #e6b36b; }"
     }
   ],
   "narrative": {
-    "northStar": "The Argument",
-    "overview": "KEEL's landing surface is a measured written argument, not a product tour. A single essay column carries the reasoning in a variable serif (Fraunces, roman and italic, self-hosted), while the chain's own artifacts — commit block, receipt hashes, health factors — accumulate beside it in a margin ledger of thin-bordered slips. The page reads under a painterly sunset-sky hero band (user-pinned artwork) that dissolves into deep ink; below the horizon, everything is document scrolling. The world explicitly refuses the category default of full-screen animated feature slides and scroll-jacked pinning. The material character is nautical print: cream ink on a deep-ink sea, hairline rules at 14% cream, an overlaid film grain, ledger slips pinned at fractional rotations, sparse public-domain glyphs. Data never wears the serif — hashes, blocks, HF values, and commands are always monospace with tabular numerals.",
+    "northStar": "The Harbor Console",
+    "overview": "KEEL's landing surface is a conventional high-craft dev-tool landing — the craft bar is Linear/Vercel, recorded as a brand commitment in PRODUCT.md — kept in KEEL's own harbor world: a painterly sunset-sky hero (user-pinned artwork), a ship silhouette, cream ink on deep sea-ink, film grain over everything. Dense sections with short copy replace the earlier longform essay (rejected as too wordy): a centered 88vh sky hero, a stat strip that overlaps the hero's base, alternating full-width tinted bands, one pinned scrubbed showpiece (the storm chart), a numbered proof pipeline, and a terminal-anchored enclave split. The voice is two-faced by design: Gloock, a high-contrast serif at weight 400 only, speaks every headline; Schibsted Grotesk does all reading and UI text; the monospace stack is reserved for chain data. Emphasis renders gold, never italic. Every number on the page is real Sepolia evidence.",
     "keyCharacteristics": [
-      "One essay column plus one margin ledger; normal scrolling, no pinning.",
-      "Cream on deep ink; gold carries links and emphasis; ember appears only for danger.",
-      "Fraunces for all reading text; monospace strictly for on-chain data and commands.",
-      "Depth by hairlines and translucent raised panels, not by heavy elevation.",
-      "Motion is one authored idea: slips file in and figures draw themselves, once."
+      "Dense sectioned landing, short copy, stat strip, one scrubbed showpiece — never a slideshow.",
+      "Gloock 400 for display only; Schibsted Grotesk 400-900 for everything read; mono for chain data.",
+      "Cream on deep ink; gold is the single accent; ember means liquidation danger only.",
+      "Translucent ink panels on hairline borders, backdrop blur, deep soft shadows on hero surfaces.",
+      "Motion: once-only rise-ins and line-mask headline reveals; exactly one pinned scrub (the storm)."
     ],
     "rules": [
-      { "name": "The One Voice Rule", "body": "Gold is the only attention color. Ember exists solely to mean liquidation danger; if it isn't danger, it isn't ember.", "section": "colors" },
-      { "name": "The Hairline Rule", "body": "Structure is drawn with 1px rules at 14% cream, often faded to transparent at their ends. No opaque borders, no heavy dividers.", "section": "colors" },
-      { "name": "The Mono-Means-Chain Rule", "body": "Monospace appears only for data and commands — hashes, blocks, HF values, code. Prose never goes mono; data never goes serif.", "section": "typography" },
-      { "name": "The Sparse Wordmark Rule", "body": "Letterspaced caps exist in exactly two sizes: the display wordmark (0.08em) and the nav mark (0.32em). Body-level text is never uppercased outside slip titles.", "section": "typography" },
-      { "name": "The Quiet Water Rule", "body": "Ledger slips and cards carry no box-shadow — hairline border plus translucent fill is the entire treatment. Only the primary button and the terminal cast shadows.", "section": "elevation" }
+      { "name": "The One Voice Rule", "body": "Gold is the only attention color; ember exists solely to mean liquidation danger. If it isn't danger, it isn't ember.", "section": "colors" },
+      { "name": "The Three Inks Rule", "body": "Depth is layered ink, not new hues: page in Deep Ink, bands in Mid Ink, raised chrome in Raised Ink — panels are translucent ink inside hairline borders.", "section": "colors" },
+      { "name": "The One Weight of Gloock Rule", "body": "Gloock exists at 400 only and never sets body copy, UI, or data — headlines and the wordmark, nothing else.", "section": "typography" },
+      { "name": "The Mono-Means-Chain Rule", "body": "Monospace appears only for chain data and commands — hashes, blocks, HF values, code, the verdict. Prose never goes mono; data never goes grotesk.", "section": "typography" },
+      { "name": "The Floating Chrome Rule", "body": "Shadows belong to the three hero surfaces — stat strip, terminal, primary button. Cards, steps, and list rows get hairline borders and, at most, a gold-dim border with a -2px lift on hover.", "section": "elevation" }
     ],
     "dos": [
-      "Do keep the essay-plus-margin-ledger structure: reasoning in the prose column, on-chain artifacts as slips beside the passage that cites them.",
-      "Do set every hash, block number, HF value, and command in the mono stack with tabular-nums, and link real tx hashes to Etherscan.",
-      "Do draw structure with 1px hairlines at 14% cream, fading at their ends.",
-      "Do keep motion once-per-element and entrance-only, honoring reduced-motion and ?nomotion.",
-      "Do keep the sunset-sky artwork and ship silhouette (user-pinned identity); serve the small raster under 720px."
+      "Do keep sections dense and copy short — a Gloock headline, one or two sub sentences, then cards, fact rows, or a figure. The craft bar is Linear/Vercel.",
+      "Do set every hash, block, HF value, command, and stat in the mono stack with tabular-nums, linked to real Etherscan artifacts where one exists.",
+      "Do keep the sunset sky and ship silhouette (user-pinned identity); reuse the sky darkened for showpiece backdrops rather than introducing new imagery.",
+      "Do keep entrance motion once-only and honor reduced-motion and ?nomotion.",
+      "Do build depth from the three inks: translucent panels, hairline borders, backdrop blur on floating chrome."
     ],
     "donts": [
-      "Don't use ember for anything but liquidation danger, or introduce a second accent.",
-      "Don't pin sections, scroll-jack, or build full-screen slide layouts — the user rejected the \"PPT\" pattern explicitly.",
-      "Don't put prose in monospace or data in the serif.",
-      "Don't add box-shadows to slips or cards; the Quiet Water Rule reserves shadows for the primary button and the terminal.",
-      "Don't invent evidence — every figure, hash, and verdict on the surface is real and fixed; extend the page only with artifacts that exist on-chain."
+      "Don't add a second pinned/scrubbed section — the storm is the one showpiece; the page must never read as slides (the user rejected the PPT pattern).",
+      "Don't use Gloock beyond 400-weight headlines and the wordmark, or set prose in mono / data in the grotesk. No italic emphasis — em is gold, upright.",
+      "Don't use ember for anything but liquidation danger, or add any accent beyond gold.",
+      "Don't put shadows on cards, steps, or list rows; the Floating Chrome Rule reserves them for the stat strip, terminal, and primary button.",
+      "Don't invent evidence — every number and hash is the real Sepolia run; extend only with artifacts that exist on-chain."
     ]
   }
 }

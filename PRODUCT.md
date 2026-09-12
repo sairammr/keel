@@ -52,7 +52,7 @@ differentiator.
   (`site/assets/sky.jpg`) and the nautical identity (ship glyph) stay. User rejected
   slideshow/PPT feel; wants a proper landing page with normal scrolling.
 - PD glyph assets from SVG Repo: ship (480911), compass rose (399350), anchor (535132),
-  wave (514289). Fraunces is the display face.
+  wave (514289). Type pair per Brand commitments below: Gloock + Schibsted Grotesk, self-hosted.
 - Product app (Next.js dashboard: /verify /hunter /replay) is separate in `app/`; the
   landing page links out to it and to GitHub + Etherscan.
 

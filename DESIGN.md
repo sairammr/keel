@@ -1,266 +1,287 @@
 ---
 name: KEEL
-description: Verifiable-secrecy liquidation protection — a written argument under a sunset sky.
+description: Verifiable-secrecy liquidation protection — a dense dev-tool landing under a sunset sky.
 colors:
-  ink: "#0d1826"
-  ink-raised: "#131f31"
+  ink: "#0b1522"
+  ink-2: "#101d2f"
+  ink-3: "#16263c"
   cream: "#f3e7cf"
-  cream-60: "rgba(243, 231, 207, 0.64)"
-  cream-40: "rgba(243, 231, 207, 0.58)"
-  hairline: "rgba(243, 231, 207, 0.14)"
+  cream-70: "rgba(243, 231, 207, 0.72)"
+  cream-55: "rgba(243, 231, 207, 0.55)"
+  hairline: "rgba(243, 231, 207, 0.13)"
   gold: "#e6b36b"
   gold-dim: "rgba(230, 179, 107, 0.35)"
   gold-bright: "#f0c586"
   ember: "#d4695a"
 typography:
   display:
-    fontFamily: "Fraunces, Georgia, 'Times New Roman', serif"
-    fontSize: "clamp(3.4rem, 8vw, 6rem)"
-    fontWeight: 560
-    lineHeight: 1
-    letterSpacing: "0.08em"
+    fontFamily: "Gloock, Georgia, serif"
+    fontSize: "clamp(2.5rem, 5.6vw, 4.7rem)"
+    fontWeight: 400
+    lineHeight: 1.08
+    letterSpacing: "0.01em"
   headline:
-    fontFamily: "Fraunces, Georgia, 'Times New Roman', serif"
-    fontSize: "clamp(1.7rem, 3.2vw, 2.3rem)"
-    fontWeight: 460
-    lineHeight: 1.22
+    fontFamily: "Gloock, Georgia, serif"
+    fontSize: "clamp(2rem, 4.4vw, 3.3rem)"
+    fontWeight: 400
+    lineHeight: 1.1
+    letterSpacing: "0.005em"
   body:
-    fontFamily: "Fraunces, Georgia, 'Times New Roman', serif"
-    fontSize: "1.0625rem"
-    fontWeight: 360
-    lineHeight: 1.66
+    fontFamily: "Schibsted Grotesk, -apple-system, 'Helvetica Neue', sans-serif"
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.6
   label:
-    fontFamily: "Fraunces, Georgia, 'Times New Roman', serif"
-    fontSize: "0.78rem"
-    fontWeight: 560
-    letterSpacing: "0.14em"
+    fontFamily: "Schibsted Grotesk, -apple-system, 'Helvetica Neue', sans-serif"
+    fontSize: "0.86rem"
+    fontWeight: 500
   data:
     fontFamily: "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace"
-    fontSize: "0.84rem"
+    fontSize: "0.8rem"
 rounded:
-  sm: "3px"
-  md: "4px"
-  lg: "6px"
+  sm: "5px"
+  md: "6px"
+  lg: "8px"
+  xl: "10px"
+  pill: "999px"
 spacing:
-  paragraph: "1.15rem"
-  slip-gap: "1.1rem"
-  passage-y: "clamp(3rem, 6vh, 4.5rem)"
-  page-x: "clamp(1.25rem, 5vw, 3rem)"
+  section-y: "clamp(4.5rem, 10vh, 7.5rem)"
+  page-x: "clamp(1.25rem, 4vw, 2.5rem)"
+  card-gap: "1.1rem"
+  container: "72rem"
 components:
   button-primary:
     backgroundColor: "{colors.gold}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.sm}"
-    padding: "0.72rem 1.5rem"
+    rounded: "{rounded.md}"
+    padding: "0.78rem 1.6rem"
   button-primary-hover:
     backgroundColor: "{colors.gold-bright}"
     textColor: "{colors.ink}"
   button-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.cream}"
-    rounded: "{rounded.sm}"
-    padding: "0.72rem 1.2rem"
-  slip:
-    backgroundColor: "rgba(19, 31, 49, 0.55)"
+    backgroundColor: "rgba(11, 21, 34, 0.3)"
     textColor: "{colors.cream}"
     rounded: "{rounded.md}"
-    padding: "1.05rem 1.15rem"
+    padding: "0.78rem 1.3rem"
+  card:
+    backgroundColor: "rgba(11, 21, 34, 0.55)"
+    textColor: "{colors.cream-70}"
+    rounded: "{rounded.xl}"
+    padding: "1.5rem 1.5rem 1.4rem"
+  stat:
+    backgroundColor: "rgba(16, 29, 47, 0.92)"
+    textColor: "{colors.cream-70}"
+    padding: "1.3rem 1.4rem"
 ---
 
 # Design System: KEEL
 
 ## Overview
 
-**Creative North Star: "The Argument"**
+**Creative North Star: "The Harbor Console"**
 
-KEEL's landing surface is a measured written argument, not a product tour. A single essay
-column carries the reasoning in a variable serif (Fraunces, roman and italic, self-hosted),
-while the chain's own artifacts — commit block, receipt hashes, health factors — accumulate
-beside it in a margin ledger of thin-bordered slips. The page reads under a painterly
-sunset-sky hero band (user-pinned artwork) that dissolves into deep ink; below the horizon,
-everything is document scrolling. The world explicitly refuses the category default of
-full-screen animated feature slides and scroll-jacked pinning.
+KEEL's landing surface is a conventional high-craft dev-tool landing — the craft bar is
+Linear/Vercel, recorded as a brand commitment in PRODUCT.md — kept in KEEL's own harbor
+world: a painterly sunset-sky hero (user-pinned artwork), a ship silhouette, cream ink on
+deep sea-ink, film grain over everything. Dense sections with short copy replace the earlier
+longform essay (rejected as too wordy): a centered 88vh sky hero, a stat strip that overlaps
+the hero's base, alternating full-width tinted bands, one pinned scrubbed showpiece (the
+storm chart), a numbered proof pipeline, and a terminal-anchored enclave split.
 
-The material character is nautical print: cream ink on a deep-ink sea, hairline rules at 14%
-cream, an overlaid film grain, ledger slips pinned at fractional rotations, sparse public-domain
-glyphs (the ship on the horizon, wave marks as section rules). Data never wears the serif —
-hashes, blocks, HF values, and commands are always monospace with tabular numerals.
+The voice is two-faced by design: Gloock, a high-contrast serif at weight 400 only, speaks
+every headline; Schibsted Grotesk does all reading and UI text; the monospace stack is
+reserved for chain data — hashes, block numbers, HF values, commands, and the verdict.
+Emphasis (`em`, `code`) renders gold, never italic. Every number on the page is real
+Sepolia evidence.
 
 **Key Characteristics:**
-- One essay column plus one margin ledger; normal scrolling, no pinning.
-- Cream on deep ink; gold carries links and emphasis; ember appears only for danger.
-- Fraunces for all reading text; monospace strictly for on-chain data and commands.
-- Depth by hairlines and translucent raised panels, not by heavy elevation.
-- Motion is one authored idea: slips file in and figures draw themselves, once.
+- Dense sectioned landing, short copy, stat strip, one scrubbed showpiece — never a slideshow.
+- Gloock 400 for display only; Schibsted Grotesk 400–900 for everything read; mono for chain data.
+- Cream on deep ink; gold is the single accent; ember means liquidation danger only.
+- Translucent ink panels on hairline borders, backdrop blur, deep soft shadows on hero surfaces.
+- Motion: once-only rise-ins and line-mask headline reveals; exactly one pinned scrub (the storm).
 
 ## Colors
 
-A two-ink nautical palette — cream text on deep ink — with gold as the single voice of
-emphasis and ember reserved for what liquidates.
+A deepened nautical palette: three inks for layered surfaces, cream for text, gold as the
+sole voice of emphasis.
 
 ### Primary
-- **Harbor Gold** (`{colors.gold}`): links, emphasis (`em` and `code` render gold), the
-  primary button, key ledger figures, the Keel line in charts, selection background,
-  focus outlines, caret, scrollbar thumb. It is the only color allowed to ask for attention.
+- **Harbor Gold** (`{colors.gold}`): links, `em`/`code` emphasis, the primary button, stat
+  numbers, card titles, the Keel chart line, tx links, selection, focus outlines, caret,
+  scrollbar. The only color that asks for attention.
 - **Pale Gold** (`{colors.gold-bright}`): primary-button hover only.
-- **Dim Gold** (`{colors.gold-dim}`): quiet gold borders (formula box, nav GitHub chip) and
-  the wave glyphs in part rules.
+- **Dim Gold** (`{colors.gold-dim}`): quiet gold borders — formula box, nav GitHub chip,
+  pipeline line and step badges, tx-link underlines, card hover borders.
 
 ### Secondary
-- **Ember** (`{colors.ember}`): danger only — the liquidation line, undefended HF values,
-  crash bands, "liquidated" labels. Never decoration, never a link.
+- **Ember** (`{colors.ember}`): danger only — liquidation line, threat bands, the located-target
+  mark, "liquidated" labels, the leak figure caption. Never decoration, never a link.
 
 ### Neutral
-- **Deep Ink** (`{colors.ink}`): the page sea; also text on gold surfaces and hero overlays.
-- **Raised Ink** (`{colors.ink-raised}`): formula-box fill; at 55% alpha it backs ledger
-  slips and close cards.
-- **Cream** (`{colors.cream}`): all reading text.
-- **Cream 60** (`{colors.cream-60}`): secondary text — nav links, slip titles and notes,
-  captions, footer.
-- **Cream 40** (`{colors.cream-40}`): faint figure labels.
-- **Hairline** (`{colors.hairline}`): every structural rule and quiet border — section
-  top-rules, slip borders, table row rules, the terminal frame.
+- **Deep Ink** (`{colors.ink}`): the page sea; text on gold; hero and storm overlays.
+- **Mid Ink** (`{colors.ink-2}`): tinted section bands (gradient full-bleed); at 0.92 alpha
+  backs stat tiles; at 0.6 backs pipeline steps and close cards.
+- **Raised Ink** (`{colors.ink-3}`): the terminal title bar.
+- **Cream** (`{colors.cream}`): headings and primary reading text.
+- **Cream 70** (`{colors.cream-70}`): secondary text — subs, list copy, captions, footer.
+- **Cream 55** (`{colors.cream-55}`): faint figure labels.
+- **Hairline** (`{colors.hairline}`): every structural border and rule at 13% cream — list
+  row rules, card/tile/terminal borders, the solidified nav's bottom edge.
 
 ### Named Rules
-**The One Voice Rule.** Gold is the only attention color. Ember exists solely to mean
-liquidation danger; if it isn't danger, it isn't ember.
+**The One Voice Rule.** Gold is the only attention color; ember exists solely to mean
+liquidation danger. If it isn't danger, it isn't ember.
 
-**The Hairline Rule.** Structure is drawn with 1px rules at 14% cream, often faded to
-transparent at their ends. No opaque borders, no heavy dividers.
+**The Three Inks Rule.** Depth is layered ink, not new hues: page in Deep Ink, bands in Mid
+Ink, raised chrome in Raised Ink — panels are translucent ink inside hairline borders.
 
 ## Typography
 
-**Display & Body Font:** Fraunces variable, roman + italic (self-hosted woff2, weights
-300–700), falling back to Georgia / Times New Roman.
+**Display Font:** Gloock (400 only, self-hosted woff2), falling back to Georgia.
+**Text/UI Font:** Schibsted Grotesk (variable 400–900, roman + italic, self-hosted).
 **Data Font:** ui-monospace system stack (SF Mono, Menlo).
 
-**Character:** A wide-gamut serif doing both the oratory and the footnotes — literary but
-precise, italic used for the thesis and asides. The monospace voice is reserved for what the
-chain said.
+**Character:** A high-contrast editorial serif doing nothing but headlines, over a sturdy
+workmanlike grotesk that carries all copy and chrome. Italics are unused; emphasis is gold.
 
 ### Hierarchy
-- **Display** (560, clamp(3.4rem, 8vw, 6rem), lh 1, tracking 0.08em): the hero wordmark only.
-- **Headline** (460, clamp(1.7rem, 3.2vw, 2.3rem), lh 1.22): section headings, each opening
-  above a hairline top-rule.
-- **Body** (360, 1.0625rem, lh 1.66): essay prose, max measure 66ch; italics for emphasis
-  render gold. Openers may carry a gold drop cap (3.9em, weight 500).
-- **Label** (560, 0.78rem, tracking 0.14em, uppercase): ledger slip titles only.
-- **Data** (mono, 0.78–0.84rem, `font-variant-numeric: tabular-nums`): hashes, block numbers,
-  HF values, tables, terminal output, the closing verdict.
+- **Display** (Gloock 400, clamp(2.5rem, 5.6vw, 4.7rem), lh 1.08, 0.01em): the hero headline,
+  balanced (`text-wrap: balance`). Gloock also sets the nav wordmark (1rem, 0.3em tracking).
+- **Headline** (Gloock 400, clamp(2rem, 4.4vw, 3.3rem), lh 1.1): section headings, often with
+  an authored line break.
+- **Sub** (Grotesk 400, 1.02–1.2rem hero / 1.05rem sections, lh 1.55–1.6, cream-70): one or
+  two short sentences under each heading, max measure 36–46rem.
+- **Body/UI** (Grotesk 400–700, 0.82–0.98rem): list copy at 400 cream-70 with 700 cream
+  lead-ins; buttons 600–700; nav links 500.
+- **Data** (mono 500, `tabular-nums`): stat numbers (clamp(1.25rem, 2.2vw, 1.7rem)), the
+  verdict (clamp(1.5rem, 4.4vw, 3rem), 0.08em), tx links and step badges (0.78rem), figure
+  labels, terminal (0.8rem).
 
 ### Named Rules
-**The Mono-Means-Chain Rule.** Monospace appears only for data and commands — hashes, blocks,
-HF values, code. Prose never goes mono; data never goes serif.
+**The One Weight of Gloock Rule.** Gloock exists at 400 only and never sets body copy, UI,
+or data — headlines and the wordmark, nothing else.
 
-**The Sparse Wordmark Rule.** Letterspaced caps exist in exactly two sizes: the display
-wordmark (0.08em) and the nav mark (0.32em). Body-level text is never uppercased outside
-slip titles.
+**The Mono-Means-Chain Rule.** Monospace appears only for chain data and commands — hashes,
+blocks, HF values, code, the verdict. Prose never goes mono; data never goes grotesk.
 
 ## Layout
 
-The passage grid centers a `minmax(0, 42rem)` prose column beside a `minmax(15rem, 19rem)`
-margin ledger, column gap clamp(2.5rem, 5vw, 5rem), horizontal padding clamp(1.25rem, 5vw, 3rem).
-Sections stack with vertical padding clamp(3rem, 6vh, 4.5rem) and are separated by centered
-part rules (a wave glyph between two fading hairlines). Wide figures span both columns up to
-62rem. The hero band is min-height 62vh (56vh under 720px) with content capped at 72rem; a
-1px horizon line closes it, ship silhouette riding its base. The nav is a fixed bar over a
-fade-to-transparent ink gradient. Under 900px the ledger folds beneath the prose as a wrapping
-row of flexible slips (min 240px, rotation removed); under 720px nav links hide and the small
-sky raster loads; under 640px wide figures scroll horizontally at min-width 600px.
+Content lives in a 72rem container with clamp(1.25rem, 4vw, 2.5rem) side padding; sections
+stack at clamp(4.5rem, 10vh, 7.5rem) vertical padding. The hero is a centered 88vh sky band
+(copy capped at 62rem, sub at 36rem, ship silhouette below the actions); the 4-across stat
+strip overlaps its base by −4.6rem. Sections alternate plain and tinted: tinted bands run
+full-bleed with a transparent → Mid Ink → transparent vertical gradient while their content
+stays in the container. Section heads are left-aligned at max 46rem. Grids: leak and enclave
+are asymmetric two-column splits (1fr / 1.25fr and 1fr / 1.15fr) collapsing at 880px; the
+jitter row is 3 equal cards (1 column at 880px); the pipeline is 4 steps over a drawn
+connector line (2-up at 880px, line hidden; 1-up at 560px); the storm showpiece is a
+full-bleed 100vh pinned panel over the darkened sky. Nav links hide at 760px; the small sky
+raster loads at 720px; the storm chart scrolls horizontally at 640px (min 600px). Facts
+render as hairline-ruled list rows, never bullets.
 
 ## Elevation & Depth
 
-Depth is atmospheric, not elevational. Raised surfaces (slips, close cards) are translucent
-raised-ink panels (`rgba(19,31,49,0.55)`) inside hairline borders; a fixed SVG-noise grain
-overlay (opacity 0.4, `mix-blend-mode: overlay`) unifies the page. Shadows are rare and
-serve legibility or weight, never chrome.
+Depth is layered translucent ink over the fixed grain (opacity 0.35, overlay blend), with
+backdrop blur on chrome that floats over imagery: the solidified nav (blur 10px over 86%
+ink), stat tiles (blur 8px), the ghost button (blur 4px). Panels sit inside hairline borders;
+only surfaces that float over the hero or anchor a section carry shadows — and those shadows
+are deep and soft.
 
 ### Shadow Vocabulary
-- **Button lift** (`box-shadow: 0 6px 24px rgba(13,24,38,0.45)`, hover
-  `0 10px 30px rgba(13,24,38,0.5)` with `translateY(-1px)`): the primary button only.
-- **Terminal weight** (`box-shadow: 0 18px 50px rgba(0,0,0,0.35)`): the terminal block.
-- **Sky legibility** (`text-shadow: 0 4px 40px rgba(13,24,38,0.6)` and softer variants):
-  hero text over the artwork; drop-shadow under the hero ship.
+- **Strip float** (`box-shadow: 0 30px 70px rgba(0,0,0,0.45)`): the overlapping stat strip.
+- **Terminal weight** (`box-shadow: 0 26px 70px rgba(0,0,0,0.45)`): the terminal block.
+- **Button lift** (`box-shadow: 0 8px 28px rgba(11,21,34,0.5)`, hover `0 12px 34px` with
+  `translateY(-1px)`): the primary button.
+- **Sky legibility** (`text-shadow: 0 6px 50px rgba(11,21,34,0.65)` and softer): hero text
+  over the artwork; drop-shadow under the hero ship.
 
 ### Named Rules
-**The Quiet Water Rule.** Ledger slips and cards carry no box-shadow — hairline border plus
-translucent fill is the entire treatment. Only the primary button and the terminal cast
-shadows.
+**The Floating Chrome Rule.** Shadows belong to the three hero surfaces — stat strip,
+terminal, primary button. Cards, steps, and list rows get hairline borders and, at most, a
+gold-dim border with a −2px lift on hover.
 
 ## Shapes
 
-Near-square geometry: 3px radius on buttons and chips, 4px on slips and the formula box,
-6px on the terminal and close cards. Nothing is a pill, nothing is a hard 0. Ledger slips
-settle at fractional rotations (0.4deg odd, −0.35deg even) — pinned paper, not a grid.
-Structural lines fade at their ends (horizon, part rules). Glyphs are public-domain nautical
-silhouettes (ship, wave) rendered via `currentColor`, used sparsely: the ship appears twice
-(horizon, footer), the wave only as section punctuation.
+A four-step radius scale plus the pill: 5px (nav chip), 6px (buttons), 8px (formula box),
+10px (cards, steps, terminal, stat strip, close cards), 999px pills for the pipeline's
+numbered badges (mono `01`–`04`, ink-filled, gold-dim border, straddling each card's top
+edge). Full-bleed bands fade in and out with gradients rather than hard edges. The ship
+silhouette (public-domain, `currentColor`) appears exactly twice — dark against the hero
+sky, cream in the footer — and is the only glyph; the sky artwork appears twice (hero, and
+darkened at 50% brightness behind the storm).
 
 ## Components
 
 ### Buttons
-- **Shape:** near-square (3px radius).
-- **Primary:** Harbor Gold on Deep Ink text, 0.72rem × 1.5rem padding, weight 560, with the
-  button-lift shadow.
-- **Hover:** brightens to Pale Gold, rises 1px, shadow deepens; 160ms ease transitions.
-- **Ghost:** transparent with a 40%-cream 1px border, cream text; border and text turn gold
-  on hover. The nav GitHub chip is a small ghost variant with a dim-gold border.
-- **Focus:** 2px gold outline, 3px offset (global `:focus-visible`).
+- **Shape:** 6px radius.
+- **Primary:** Harbor Gold, Deep Ink text at weight 700, 0.78rem × 1.6rem padding, button-lift
+  shadow; hover brightens to Pale Gold, rises 1px; 160ms ease transitions.
+- **Ghost:** translucent ink fill with backdrop blur, 42%-cream 1px border, cream text at
+  600; border and text turn gold on hover.
+- **Nav chip:** small ghost variant — 0.84rem/600, dim-gold border, 5px radius.
+- **Focus:** global 2px gold outline, 3px offset.
 
-### Ledger Slips (signature component)
-- **Style:** hairline border, 4px radius, translucent raised-ink fill, 1.05rem × 1.15rem
-  padding, pinned at a fractional rotation.
-- **Anatomy:** uppercase label title (0.78rem, 0.14em, cream-60); optional big mono figure
-  (1.18rem, gold — ember when danger); mono links that wrap anywhere; serif notes in cream-60.
-- **Tables:** mono, tabular numerals, hairline row rules, right column cream-60, danger rows
-  ember.
+### Stat Strip (signature component)
+4-up grid (2-up at 900px) fused by 1px hairline gaps inside one 10px-radius hairline frame,
+floating over the hero seam with the strip-float shadow. Each tile: blurred near-opaque Mid
+Ink, a gold mono tabular number (counts up on entry), a small cream-70 grotesk caption.
 
-### Cards / Containers
-- **Close cards:** hairline border, 6px radius, translucent raised-ink fill, 1.4rem × 1.5rem
-  padding, gold `h3`, mono `pre` content.
-- **Formula box:** dim-gold border, 4px radius, Raised Ink fill, gold mono content.
+### Cards / Steps
+- **Feature card:** hairline border, 10px radius, translucent Deep Ink fill, gold grotesk-700
+  title, cream-70 copy; hover: gold-dim border + `translateY(-2px)`, 200ms.
+- **Pipeline step:** same anatomy on Mid Ink 0.6 with a pill-numbered mono badge overlapping
+  the top border and a `.tx` mono link (gold, dim-gold underline, `↗` suffix) to Etherscan.
+- **Close card:** 10px radius, Mid Ink 0.6, gold title, mono `pre` commands.
+- **Formula box:** dim-gold border, 8px radius, translucent ink, gold mono formula.
+
+### Fact Lists
+`leak-points` / `enc-facts`: borderless lists whose rows are separated by hairline top rules
+(bottom rule on the last), cream-70 copy with grotesk-700 cream lead-ins. No bullet glyphs.
 
 ### Terminal
-Hairline frame, 6px radius, terminal-weight shadow; title bar `#1a2436` with a truncating
-mono command; body `#0a1220`, mono 0.8rem, cream text with gold `<b>` highlights.
+Hairline frame, 10px radius, terminal-weight shadow; Raised Ink title bar with a truncating
+mono command; body `#081120`, mono 0.8rem cream with gold `<b>` status words.
 
 ### Navigation
-Fixed bar over a fading ink gradient. Wordmark: 0.95rem, weight 600, 0.32em tracking.
-Links: 0.88rem italic serif, cream-60 → gold on hover. GitHub as a bordered chip. Links
-hidden under 720px.
+Fixed bar, transparent at top; past the hero it solidifies (86% ink, 10px blur, hairline
+bottom border, 240ms ease). Gloock wordmark, grotesk-500 links (cream-70 → gold), GitHub chip.
 
 ### Figures
-Inline SVG only, styled by the `f-*` class vocabulary: hairline axes, ember dashed
-liquidation lines, gold Keel strokes (3px round caps) vs ember undefended strokes (2.5px),
-mono 20px labels in cream-40, gold defend markers with ink strokes.
+Inline SVG styled by the `f-*` vocabulary: hairline axes, dashed ember liquidation line,
+ember bands/target, gold Keel stroke (3.5px round caps) vs ember undefended (2.5px), mono
+19px labels in cream-55, gold defend markers with ink strokes.
 
-### Motion (signature interaction)
-GSAP (vendored, ScrollTrigger + DrawSVG). One idea: ledger slips file in from the right
-(x 48, +2.5deg over their settle rotation, power3.out, ~0.75s) and pin themselves, `once: true`;
-figures draw themselves a single time on entry; the hero plays one quiet staggered entrance
-with the ship sliding in. Micro-transitions elsewhere are 160ms ease. No pinning, no
-scroll-jacking, no looping animation. `prefers-reduced-motion` and `?nomotion` disable
-everything (CSS forces slips and figures fully visible).
+### Motion
+GSAP (vendored: ScrollTrigger, SplitText, DrawSVG). Grammar: hero loads with a sky
+scale-settle (1.08 → 1) and line-masked headline rise (SplitText, yPercent 110, power3.out),
+then parallaxes out on scroll; section headlines rise through line masks once; everything
+else enters via batched once-only rise-ins (y ~30, stagger 0.08, 0.7s); stat numbers count
+up once. Exactly one pinned scrub: the storm chart draws under scrub over +150% scroll
+(lines draw, defend markers pop with `back.out(2)`, verdict labels land). Two light scrubbed
+accents: the pipeline connector draws, the footer ship sails in. Micro-transitions 160–240ms
+ease. `prefers-reduced-motion` and `?nomotion` disable all of it.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep the essay-plus-margin-ledger structure: reasoning in the prose column, on-chain
-  artifacts as slips beside the passage that cites them.
-- **Do** set every hash, block number, HF value, and command in the mono stack with
-  `tabular-nums`, and link real tx hashes to Etherscan.
-- **Do** draw structure with 1px hairlines at 14% cream, fading at their ends.
-- **Do** keep motion once-per-element and entrance-only, honoring reduced-motion and
-  `?nomotion`.
-- **Do** keep the sunset-sky artwork and ship silhouette (user-pinned identity); serve the
-  small raster under 720px.
+- **Do** keep sections dense and copy short — a Gloock headline, one or two sub sentences,
+  then cards, fact rows, or a figure. The craft bar is Linear/Vercel.
+- **Do** set every hash, block, HF value, command, and stat in the mono stack with
+  `tabular-nums`, linked to real Etherscan artifacts where one exists.
+- **Do** keep the sunset sky and ship silhouette (user-pinned identity); reuse the sky
+  darkened for showpiece backdrops rather than introducing new imagery.
+- **Do** keep entrance motion once-only and honor reduced-motion and `?nomotion`.
+- **Do** build depth from the three inks: translucent panels, hairline borders, backdrop
+  blur on floating chrome.
 
 ### Don't:
-- **Don't** use ember for anything but liquidation danger, or introduce a second accent.
-- **Don't** pin sections, scroll-jack, or build full-screen slide layouts — the user
-  rejected the "PPT" pattern explicitly.
-- **Don't** put prose in monospace or data in the serif.
-- **Don't** add box-shadows to slips or cards; the Quiet Water Rule reserves shadows for the
-  primary button and the terminal.
-- **Don't** invent evidence — every figure, hash, and verdict on the surface is real and
-  fixed; extend the page only with artifacts that exist on-chain.
+- **Don't** add a second pinned/scrubbed section — the storm is the one showpiece; the page
+  must never read as slides (the user rejected the PPT pattern).
+- **Don't** use Gloock beyond 400-weight headlines and the wordmark, or set prose in mono /
+  data in the grotesk. No italic emphasis — `em` is gold, upright.
+- **Don't** use ember for anything but liquidation danger, or add any accent beyond gold.
+- **Don't** put shadows on cards, steps, or list rows; the Floating Chrome Rule reserves
+  them for the stat strip, terminal, and primary button.
+- **Don't** invent evidence — every number and hash is the real Sepolia run; extend only
+  with artifacts that exist on-chain.
