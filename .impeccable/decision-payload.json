@@ -1,0 +1,67 @@
+{
+  "title": "KEEL landing page — choose the composition",
+  "question": "World stays: painterly sunset sky, nautical glyphs, Fraunces. This choice is the page's structure. The roll assigned Into the Storm.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Into the Storm",
+      "kicker": "THE ROLL",
+      "lineage": "voyage log — fair weather to gale, one continuous descent",
+      "thesis": "One scrolling descent from calm sky into the storm: the page itself weathers the crash the product survives.",
+      "palette": ["#0d1826", "#f3e7cf", "#e6b36b", "#c04a41"],
+      "materials": ["sky gradient descent", "inline evidence rows"],
+      "viewport": "Full sky hero: thesis line, two CTAs (Verify the run / GitHub), and a live proof strip — commit block, 2 receipts, ALL ROUNDS CONSISTENT — floating on the clouds. Normal scroll from there.",
+      "risk": "The dark-descent continuity takes careful section blending or it reads as unrelated dark slabs.",
+      "wireframe": {"cols": 12, "rows": 12, "regions": [
+        {"label": "nav", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "sky hero — thesis + CTAs", "x": 0, "y": 1, "w": 8, "h": 3},
+        {"label": "proof strip (live)", "x": 8, "y": 1, "w": 4, "h": 3, "accent": true},
+        {"label": "the leak — threshold hunt", "x": 0, "y": 4, "w": 6, "h": 2},
+        {"label": "jitter defense", "x": 6, "y": 4, "w": 6, "h": 2},
+        {"label": "crash chart — round by round (sky darkens)", "x": 0, "y": 6, "w": 12, "h": 3, "accent": true},
+        {"label": "receipts ledger — real tx rows", "x": 0, "y": 9, "w": 12, "h": 2},
+        {"label": "verify CTA + footer", "x": 0, "y": 11, "w": 12, "h": 1}
+      ]}
+    },
+    {
+      "id": "three-doors",
+      "label": "Three Doors",
+      "lineage": "triptych — one claim, three proofs",
+      "thesis": "Hero states the claim; three doors — HIDE, PROVE, SURVIVE — each open into a dense proof section a judge can take in any order.",
+      "palette": ["#0d1826", "#f3e7cf", "#e6b36b", "#dd6b4a"],
+      "materials": ["triptych panels", "expanding proof cards"],
+      "viewport": "Sky hero with the one-liner, then three tall doors side by side above the fold: HIDE (jitter band), PROVE (commit→receipt→reveal), SURVIVE (crash chart thumbnail). Each scrolls to its section.",
+      "risk": "Fragments the single argument; judges may open one door and miss the strongest proof.",
+      "wireframe": {"cols": 12, "rows": 12, "regions": [
+        {"label": "nav", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "sky hero — one-liner", "x": 0, "y": 1, "w": 12, "h": 2},
+        {"label": "door: HIDE", "x": 0, "y": 3, "w": 4, "h": 3, "accent": true},
+        {"label": "door: PROVE", "x": 4, "y": 3, "w": 4, "h": 3, "accent": true},
+        {"label": "door: SURVIVE", "x": 8, "y": 3, "w": 4, "h": 3, "accent": true},
+        {"label": "HIDE section — jitter", "x": 0, "y": 6, "w": 12, "h": 2},
+        {"label": "PROVE section — tx ledger", "x": 0, "y": 8, "w": 12, "h": 2},
+        {"label": "SURVIVE section — chart + verify CTA", "x": 0, "y": 10, "w": 12, "h": 2}
+      ]}
+    },
+    {
+      "id": "argument",
+      "label": "The Argument",
+      "lineage": "measured essay with a ledger margin",
+      "thesis": "One narrow editorial column argues leak → jitter → proof in dense prose and inline figures; the margin carries the on-chain artifacts — block numbers, tx hashes, verdicts.",
+      "palette": ["#0d1826", "#f3e7cf", "#e6b36b", "#8e2436"],
+      "materials": ["single measured column", "margin ledger notes"],
+      "viewport": "Sky band a third tall with title + one-liner; below, the column begins immediately — 'Your liquidation bot has a number' — with the commit block and verdict pinned in the right margin.",
+      "risk": "Text-forward; a skimming judge must be caught by the margin artifacts or the inline chart.",
+      "wireframe": {"cols": 12, "rows": 12, "regions": [
+        {"label": "nav", "x": 0, "y": 0, "w": 12, "h": 1},
+        {"label": "sky band — title", "x": 0, "y": 1, "w": 12, "h": 2},
+        {"label": "essay column", "x": 2, "y": 3, "w": 6, "h": 8},
+        {"label": "margin ledger — tx hashes, blocks, verdict", "x": 8, "y": 3, "w": 3, "h": 8, "accent": true},
+        {"label": "inline crash figure", "x": 2, "y": 7, "w": 6, "h": 2, "accent": true},
+        {"label": "verify CTA + footer", "x": 0, "y": 11, "w": 12, "h": 1}
+      ]}
+    }
+  ],
+  "reroll": true,
+  "steer": true
+}

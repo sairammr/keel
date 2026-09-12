@@ -34,3 +34,4 @@ contracts/lib/
 skills-lock.json
 workflow/src/.cre_build_tmp.js
 *.wasm
+.codex/

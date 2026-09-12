@@ -4,273 +4,306 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KEEL — verifiable-secrecy liquidation protection</title>
-<meta name="description" content="Keel hides the number, hides what the number will do next, and proves the number never changed. Chainlink CRE confidential workflow, ETHOnline 2026.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap" rel="stylesheet">
+<meta name="description" content="Keel hides the health-factor policy, makes it non-invertible from observed actions, and proves on-chain that it never changed. Chainlink CRE confidential workflow, ETHOnline 2026.">
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
 </head>
 <body>
 
-<!-- fixed layers (outside the smoother) -->
 <div class="grain" aria-hidden="true"></div>
 
-<nav class="nav">
-  <a class="nav-mark" href="#hero">KEEL</a>
+<nav class="nav" aria-label="Site">
+  <a class="nav-mark" href="#top">KEEL</a>
   <div class="nav-links">
-    <a href="#problem">The leak</a>
-    <a href="#idea">The jitter</a>
-    <a href="#pipeline">The proof</a>
+    <a href="#leak">The leak</a>
+    <a href="#proof">The proof</a>
     <a href="#storm">The storm</a>
-    <a href="#run">Run it</a>
+    <a href="#verify">Verify</a>
   </div>
-  <a class="nav-gh" href="https://github.com/sairammr/keel" target="_blank" rel="noopener">GitHub ↗</a>
+  <a class="nav-gh" href="https://github.com/sairammr/keel" target="_blank" rel="noopener">GitHub</a>
 </nav>
 
-<div id="smooth-wrapper">
-<div id="smooth-content">
-
-<!-- ============ HERO ============ -->
-<section class="hero" id="hero">
-  <div class="hero-sky" aria-hidden="true">
-    <div class="sky-img"></div>
-    <div class="sky-tint"></div>
-  </div>
-  <svg class="compass-bg" id="compassHero" aria-hidden="true"><use href="#compass"></use></svg>
-  <div class="hero-inner">
-    <p class="hero-kicker">ETHOnline 2026 · Chainlink CRE · Confidential Workflows</p>
-    <h1 class="hero-title" aria-label="KEEL">KEEL</h1>
-    <p class="hero-sub">The starter hides the number.<br>
-      Keel hides the number, hides what it will do next,<br class="wide-only">
-      and <em>proves it never changed.</em></p>
-  </div>
-  <div class="hero-ship" aria-hidden="true">
-    <svg class="ship-svg"><use href="#ship"></use></svg>
-    <div class="horizon"></div>
-  </div>
-  <div class="scroll-cue" aria-hidden="true"><span></span>scroll</div>
-</section>
-
-<!-- ============ THE LEAK ============ -->
-<section class="panel panel-ink" id="problem">
-  <div class="glow glow-ember" aria-hidden="true"></div>
-  <div class="pin-wrap">
-    <div class="split">
-      <div class="copy">
-        <p class="kicker">01 — the leak</p>
-        <h2 class="beats">
-          <span class="beat" data-beat="0">Your liquidation bot has <em>a number</em> — the health factor at which it acts.</span>
-          <span class="beat" data-beat="1">Put it in a TEE and call it private? Every action / inaction pair leaks <em>one bit</em> of a binary search.</span>
-          <span class="beat" data-beat="2">Three actions locate a fixed threshold to <em>±0.005&nbsp;HF</em>. With the public on-chain reserve, that is a <em>stop-hunt target.</em></span>
-        </h2>
-        <p class="fine">The whole game is played in a $205 window — HF 1.114 ⇔ $2,000 down to HF 1.00 ⇔ $1,795.</p>
-      </div>
-      <div class="viz">
-        <div class="hfscale" aria-hidden="true">
-          <div class="hf-tick" style="--hf:1.114"><i>1.114</i></div>
-          <div class="hf-tick" style="--hf:1.08"><i>1.08</i></div>
-          <div class="hf-tick" style="--hf:1.03"><i>1.03</i></div>
-          <div class="hf-tick liq" style="--hf:1.00"><i>1.00 · liquidation</i></div>
-          <div class="band" id="huntBand"></div>
-          <div class="obs" data-obs="0">acted @ 1.09 → threshold below</div>
-          <div class="obs" data-obs="1">held @ 1.06 → threshold above</div>
-          <div class="obs" data-obs="2">acted @ 1.08 → <b>located.</b></div>
-          <div class="target" id="huntTarget"><span>◎ target 1.080 ± 0.005</span></div>
-        </div>
+<!-- ============ SKY BAND ============ -->
+<header class="hero" id="top">
+  <div class="hero-sky" aria-hidden="true"></div>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <h1>KEEL</h1>
+      <p class="hero-thesis">The starter hides the number. Keel hides the number,
+      hides what it will do next, and <em>proves it never changed.</em></p>
+      <p class="hero-line">Verifiable-secrecy liquidation protection · a Chainlink CRE
+      confidential workflow · ETHOnline 2026</p>
+      <div class="hero-actions">
+        <a class="btn" href="https://github.com/sairammr/keel#how-to-verify-the-point-of-the-whole-thing">Verify the live run</a>
+        <a class="btn-ghost" href="https://github.com/sairammr/keel" target="_blank" rel="noopener">Read the source</a>
       </div>
     </div>
   </div>
-</section>
-
-<div class="wavebar" aria-hidden="true">
-  <span class="waveline"></span>
-  <svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg>
-  <span class="waveline"></span>
-</div>
-
-<!-- ============ THE JITTER ============ -->
-<section class="panel panel-dusk" id="idea">
-  <div class="glow glow-gold" aria-hidden="true"></div>
-  <div class="pin-wrap">
-    <div class="split">
-      <div class="copy">
-        <p class="kicker">02 — the jitter</p>
-        <h2 class="beats">
-          <span class="beat" data-beat="0">So the trigger refuses to be a number.</span>
-          <span class="beat" data-beat="1"><code class="formula">trigger = clamp(base + k·σ + jitter(HMAC(salt, round)))</code></span>
-          <span class="beat" data-beat="2">One fresh draw per price level. <em>Upward only</em> — Keel can act earlier, never later. Cleverness never costs survival.</span>
-          <span class="beat" data-beat="3">No sequence of observations narrows <code>base</code> below the jitter width. The adversary knows the algorithm — <em>Kerckhoffs</em> — and still can't aim.</span>
-        </h2>
-      </div>
-      <div class="viz">
-        <div class="hfscale" aria-hidden="true">
-          <div class="hf-tick" style="--hf:1.114"><i>1.114</i></div>
-          <div class="hf-tick liq" style="--hf:1.00"><i>1.00 · liquidation</i></div>
-          <div class="jband" id="jitterBand"><span>jitter width — never narrows</span></div>
-          <div class="jmark" id="jitterMark">▲</div>
-          <div class="floor" id="hardFloor"><span>hard floor + emergency override @ 1.03</span></div>
-        </div>
-      </div>
-    </div>
+  <div class="hero-horizon" aria-hidden="true">
+    <svg class="hero-ship"><use href="#ship"></use></svg>
   </div>
-</section>
+</header>
 
-<!-- ============ THE PROOF (horizontal) ============ -->
-<section class="hwrap" id="pipeline">
-  <svg class="anchor-float a1" aria-hidden="true"><use href="#anchor"></use></svg>
-  <svg class="anchor-float a2" aria-hidden="true"><use href="#anchor"></use></svg>
-  <div class="hpin">
-    <p class="kicker hkicker">03 — the proof · drag through the pipeline</p>
-    <div class="htrack" id="htrack">
-      <article class="hcard">
-        <p class="kicker">i · commit</p>
-        <h3>Commit, <em>before</em> the storm</h3>
-        <p><code>keccak256(policyHash ‖ salt)</code> lands on Sepolia at block <b>11,682,878</b> — provably earlier than <code>ChallengeStarted</code>. The policy panel stays blank.</p>
-        <a class="tx" href="https://sepolia.etherscan.io/tx/0xa63f24f20941a30f7a8010a544249eb12479f1e958a20f4964e4ece486856205" target="_blank" rel="noopener">commit · 0xa63f24f2… ↗</a>
-      </article>
-      <article class="hcard">
-        <p class="kicker">ii · receipts</p>
-        <h3>Every action carries a receipt</h3>
-        <p>EIP-712, signed by a key derived <em>inside the enclave</em> from the same salt. Action at nonce <i>n</i>, receipt at <i>n+1</i>, same EOA — visible on Etherscan. The receipt carries no trigger fields.</p>
-        <a class="tx" href="https://sepolia.etherscan.io/tx/0x486ccffdc2c2f8b0eddf7473d4c4b9a6b396729a5b3dea784c4d5f397d9034f2" target="_blank" rel="noopener">receipt r1 · 0x486ccffd… ↗</a>
-        <a class="tx" href="https://sepolia.etherscan.io/tx/0x8ba5a8f0e97c56635a6362cc39574e297848d9ec78f1cfed0ebe6e2d8205cffc" target="_blank" rel="noopener">receipt r3 · 0x8ba5a8f0… ↗</a>
-      </article>
-      <article class="hcard">
-        <p class="kicker">iii · reveal</p>
-        <h3>Reveal, and anyone re-derives everything</h3>
-        <p>Paste <code>(policyBytes, salt)</code>. The commitment must match. Then every round's trigger is recomputed from public <code>PriceUpdate</code> logs and each action checked against the committed policy.</p>
-        <a class="tx" href="https://sepolia.etherscan.io/tx/0xd874ee6b2c95c28e43b5d3aa9ffbc3431a763987087d5a5cd55a1eac100e8d96" target="_blank" rel="noopener">reveal · 0xd874ee6b… ↗</a>
-      </article>
-      <article class="hcard hcard-verdict">
-        <p class="kicker">the verdict</p>
-        <h3 class="verdict-line">ALL ROUNDS CONSISTENT</h3>
-        <p>The independent verifier does not trust the receipts' self-reported HF — it reconstructs pre-action HF from chain logs. A mismatch would surface as <code>RECEIPT&nbsp;HF&nbsp;MISMATCH</code>. It didn't.</p>
-        <p class="fine">That is the difference between secrecy and <em>verifiable</em> secrecy.</p>
-      </article>
-    </div>
-    <div class="hprogress" aria-hidden="true"><i></i></div>
-  </div>
-</section>
+<main class="essay">
 
-<!-- ============ THE STORM ============ -->
-<section class="panel panel-storm" id="storm">
-  <div class="storm-sky" aria-hidden="true"></div>
-  <div class="cloud cloud-a" aria-hidden="true"></div>
-  <div class="cloud cloud-b" aria-hidden="true"></div>
-  <div class="pin-wrap">
-    <div class="storm-head">
-      <p class="kicker">04 — the storm</p>
-      <h2 class="reveal-h">A real crash, on a real chain.</h2>
-      <p class="fine">Staging run on Sepolia — same crash for both lines. Rounds 3–5 push the undefended position to HF 0.99 / 0.95 / 0.93. Liquidated. Keel deposits at rounds 1 and 3 and never drops below 1.10.</p>
+  <!-- ============ I · THE LEAK ============ -->
+  <section class="passage" id="leak">
+    <div class="prose">
+      <h2>The number that leaks</h2>
+      <p class="opener"><span class="dropcap">Y</span>our liquidation bot has a number — the
+      health factor at which it acts. The official starter puts that number inside a trusted
+      enclave and calls it private. It is not. Every action the bot takes, and every action it
+      declines to take, answers a yes-or-no question about the threshold: it acted at 1.09, so
+      the trigger lies below; it held at 1.06, so the trigger lies above. Each round of the
+      scenario is one probe of a binary search that somebody else is running against you.</p>
+      <p>Three actions locate a fixed threshold to within ±0.005 HF. Combine that with the
+      wallet reserve — <code>balanceOf</code>, public all along — and the “private” strategy
+      becomes a stop-hunt target: push the price to just above the located trigger, drain the
+      defence, then take the position.</p>
+      <figure class="fig">
+        <svg viewBox="0 0 640 210" role="img" aria-label="Three observed actions collapse the possible threshold range to a narrow band">
+          <line class="f-rule" x1="40" y1="30"  x2="600" y2="30"/>
+          <line class="f-rule" x1="40" y1="180" x2="600" y2="180"/>
+          <text class="f-lbl" x="32" y="34" text-anchor="end">1.114</text>
+          <text class="f-lbl f-danger" x="32" y="184" text-anchor="end">1.00</text>
+          <rect class="f-band b1" x="40"  y="30"  width="140" height="150"/>
+          <rect class="f-band b2" x="230" y="58"  width="140" height="94"/>
+          <rect class="f-band b3" x="420" y="88"  width="140" height="26"/>
+          <text class="f-lbl" x="110" y="200" text-anchor="middle">before</text>
+          <text class="f-lbl" x="300" y="200" text-anchor="middle">one action</text>
+          <text class="f-lbl" x="490" y="200" text-anchor="middle">three actions</text>
+          <line class="f-target" x1="420" y1="101" x2="560" y2="101"/>
+        </svg>
+        <figcaption>What an observer knows about a fixed threshold: each acted / held pair
+        halves the band. After three actions the target is located.</figcaption>
+      </figure>
+      <p>With the challenge’s real parameters the entire game is played inside a $205 window.
+      The on-chain test is an integer (<code>hf&nbsp;≤&nbsp;100</code> liquidates), so a true
+      health factor of 1.009 already falls. Keel treats 1.01 as the line and keeps an emergency
+      override above it.</p>
     </div>
-    <div class="stormchart">
-      <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet" aria-label="Health factor through the crash: undefended liquidates, Keel survives">
-        <line class="ax" x1="70" y1="470" x2="950" y2="470"/>
-        <line class="liqline" id="liqLine" x1="70" y1="330" x2="950" y2="330"/>
-        <text class="axlbl liqlbl" x="78" y="322">HF 1.00 — liquidation</text>
-        <text class="axlbl" x="30" y="180">1.11</text>
-        <text class="axlbl" x="30" y="334">1.00</text>
-        <g class="axlbl rounds">
-          <text x="80"  y="500">r0</text><text x="250" y="500">r1</text><text x="420" y="500">r2</text>
-          <text x="590" y="500">r3</text><text x="760" y="500">r4</text><text x="930" y="500">r5</text>
+    <aside class="ledger" aria-label="The window, in numbers">
+      <div class="slip">
+        <h3 class="slip-title">The $205 window</h3>
+        <table class="slip-table">
+          <tr><td>HF 1.114</td><td>$2,000</td></tr>
+          <tr><td>HF 1.08</td><td>$1,938</td></tr>
+          <tr><td>HF 1.03</td><td>$1,849</td></tr>
+          <tr class="danger"><td>HF 1.00</td><td>$1,795</td></tr>
+        </table>
+        <p class="slip-note">HF(price) = price / 1794.87 on the official contract.</p>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">Inference speed</h3>
+        <p class="slip-big">±0.005 HF</p>
+        <p class="slip-note">precision after three observed actions against a fixed
+        threshold — our own Bayesian hunter does it, live, in the app.</p>
+      </div>
+    </aside>
+  </section>
+
+  <div class="partrule" aria-hidden="true"><svg><use href="#wave"></use></svg></div>
+
+  <!-- ============ II · THE JITTER ============ -->
+  <section class="passage" id="jitter">
+    <div class="prose">
+      <h2>A trigger that refuses to be a number</h2>
+      <p>So Keel’s trigger is not a number. It is a distribution:</p>
+      <p class="formula"><code>trigger = clamp(base + k·σ + jitter(HMAC(salt, round)))</code></p>
+      <p>One fresh draw per price level, keyed by a sealed salt and the round index. The draw
+      is <em>upward-only</em>: it can make Keel act earlier, never later, so the cleverness
+      never costs survival. A hard floor and an emergency override sit beneath all of it.</p>
+      <p>The adversary is welcome to know the algorithm — Kerckhoffs’ principle, and our own
+      hunter model knows it exactly. It still cannot aim: no sequence of observed actions
+      narrows <code>base</code> below the jitter width, because every observation is explained
+      equally well by a lower base with a high draw or a higher base with a low one. The
+      secrecy rests on the salt, not on the code being unknown.</p>
+    </div>
+    <aside class="ledger" aria-label="Jitter properties">
+      <div class="slip">
+        <h3 class="slip-title">Upward only</h3>
+        <p class="slip-note">A jitter draw moves the trigger toward safety, never past the
+        floor. Acting early costs basis points; acting late costs the position.</p>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">What the hunter sees</h3>
+        <p class="slip-big">σ(base) ≥ jitter width</p>
+        <p class="slip-note">the posterior over the base trigger stops narrowing — measured
+        by the M2 Bayesian adversary in <code>packages/hunter</code>.</p>
+      </div>
+    </aside>
+  </section>
+
+  <div class="partrule" aria-hidden="true"><svg><use href="#wave"></use></svg></div>
+
+  <!-- ============ III · THE PROOF ============ -->
+  <section class="passage" id="proof">
+    <div class="prose">
+      <h2>Proof without disclosure</h2>
+      <p>Secrecy is cheap to claim. Keel’s difference is that the secrecy is
+      <em>verifiable</em>: the policy provably existed before the storm and provably never
+      changed, without being shown to anyone.</p>
+      <p>Before the scenario starts, the enclave commits
+      <code>keccak256(policyHash&nbsp;‖&nbsp;salt)</code> to Sepolia. Every defend then carries
+      an EIP-712 receipt signed by a key derived inside the enclave from the same salt: the
+      action lands at nonce <i>n</i>, its receipt at <i>n</i>+1, from the same account. The
+      pairing is visible on Etherscan, and the receipt schema carries no trigger fields, so the
+      receipts themselves leak nothing.</p>
+      <p>After the scenario ends, Keel reveals <code>(policyBytes, salt)</code>. From there,
+      anyone can recompute the commitment, re-derive every round’s trigger from public
+      <code>PriceUpdate</code> logs, and check each action, and each deliberate inaction,
+      against the sealed policy. The independent verifier goes further: it refuses to trust
+      the receipts’ self-reported health factors and reconstructs each round’s pre-action HF
+      from chain logs on its own. A mismatch would print
+      <code>RECEIPT&nbsp;HF&nbsp;MISMATCH</code>.</p>
+      <p>Its verdict on the live run is printed at the end of this page.</p>
+    </div>
+    <aside class="ledger" aria-label="On-chain artifacts of the live run">
+      <div class="slip">
+        <h3 class="slip-title">Commit — before the start</h3>
+        <p class="slip-big">block 11,682,878</p>
+        <a class="slip-link" href="https://sepolia.etherscan.io/tx/0xa63f24f20941a30f7a8010a544249eb12479f1e958a20f4964e4ece486856205" target="_blank" rel="noopener">0xa63f24f2…6205</a>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">Receipts — EIP-712</h3>
+        <a class="slip-link" href="https://sepolia.etherscan.io/tx/0x486ccffdc2c2f8b0eddf7473d4c4b9a6b396729a5b3dea784c4d5f397d9034f2" target="_blank" rel="noopener">round 1 · 0x486ccffd…34f2</a>
+        <a class="slip-link" href="https://sepolia.etherscan.io/tx/0x8ba5a8f0e97c56635a6362cc39574e297848d9ec78f1cfed0ebe6e2d8205cffc" target="_blank" rel="noopener">round 3 · 0x8ba5a8f0…cffc</a>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">Reveal — after the stop</h3>
+        <a class="slip-link" href="https://sepolia.etherscan.io/tx/0xd874ee6b2c95c28e43b5d3aa9ffbc3431a763987087d5a5cd55a1eac100e8d96" target="_blank" rel="noopener">0xd874ee6b…1e96</a>
+        <p class="slip-note">wrong-salt reveals revert; the commitment must match.</p>
+      </div>
+    </aside>
+  </section>
+
+  <div class="partrule" aria-hidden="true"><svg><use href="#wave"></use></svg></div>
+
+  <!-- ============ IV · THE STORM ============ -->
+  <section class="passage" id="storm">
+    <div class="prose">
+      <h2>The storm it survived</h2>
+      <p>This is not a simulation of a crash. On Sepolia, against a byte-for-byte faithful
+      copy of the official challenge contract, the same price crash hit two positions. The
+      undefended one fell through the liquidation line at round&nbsp;3 and was liquidated.
+      Keel deposited at rounds 1 and 3, never dropped below 1.10, and finished the storm with
+      its debt intact.</p>
+    </div>
+    <figure class="fig fig-wide">
+      <svg viewBox="0 0 960 400" role="img" aria-label="Health factor by round: the undefended position crosses HF 1.00 and is liquidated; Keel stays above 1.10">
+        <line class="f-rule" x1="60" y1="352" x2="930" y2="352"/>
+        <line class="f-liq"  id="liqLine" x1="60" y1="252" x2="930" y2="252"/>
+        <text class="f-lbl f-danger" x="66" y="244">HF 1.00 — liquidation</text>
+        <text class="f-lbl" x="52" y="140" text-anchor="end">1.11</text>
+        <text class="f-lbl" x="52" y="256" text-anchor="end">1.00</text>
+        <g class="f-lbl">
+          <text x="68"  y="376">r0</text><text x="240" y="376">r1</text><text x="412" y="376">r2</text>
+          <text x="584" y="376">r3</text><text x="756" y="376">r4</text><text x="922" y="376">r5</text>
         </g>
-        <path class="line-und" id="lineUnd" fill="none" d="M80,176 L250,232 L420,288 L590,344 L760,400 L930,428"/>
-        <path class="line-keel" id="lineKeel" fill="none" d="M80,176 L250,92 L420,120 L590,148 L760,176 L930,190"/>
-        <g class="defend" id="defend1"><circle cx="250" cy="92" r="9"/><text x="250" y="66">deposit 0.51</text></g>
-        <g class="defend" id="defend2"><circle cx="590" cy="148" r="9"/><text x="590" y="122">deposit 0.46</text></g>
-        <g class="skull" id="skull"><text x="612" y="368">✕ liquidated</text></g>
-        <text class="survive" id="survive" x="930" y="164" text-anchor="end">keel survives ≥ 1.10</text>
+        <path class="f-und"  id="lineUnd"  fill="none" d="M68,136 L240,176 L412,216 L584,262 L756,296 L928,314"/>
+        <path class="f-keel" id="lineKeel" fill="none" d="M68,136 L240,76 L412,96 L584,112 L756,132 L928,142"/>
+        <g class="f-defend" id="defend1"><circle cx="240" cy="76" r="7"/><text x="240" y="54" text-anchor="middle">deposit 0.51</text></g>
+        <g class="f-defend" id="defend2"><circle cx="584" cy="112" r="7"/><text x="584" y="90" text-anchor="middle">deposit 0.46</text></g>
+        <text class="f-lbl f-danger" id="liqMark" x="600" y="286">liquidated</text>
+        <text class="f-lbl f-safe" id="surviveMark" x="928" y="120" text-anchor="end">Keel ≥ 1.10</text>
       </svg>
-    </div>
-  </div>
-</section>
+      <figcaption>The staging run, reconstructed from chain logs. Same crash for both lines;
+      only one of them had a keel.</figcaption>
+    </figure>
+    <aside class="ledger" aria-label="The storm in numbers">
+      <div class="slip">
+        <h3 class="slip-title">Undefended</h3>
+        <p class="slip-big danger">0.99 · 0.95 · 0.93</p>
+        <p class="slip-note">health factor at rounds 3–5. On-chain test
+        <code>hf ≤ 100</code>: liquidated.</p>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">Keel</h3>
+        <p class="slip-big">≥ 1.10 every round</p>
+        <p class="slip-note">two defends (0.51 vETH at round 1, 0.46 at round 3), each with
+        its receipt one nonce later.</p>
+      </div>
+    </aside>
+  </section>
 
-<div class="wavebar" aria-hidden="true">
-  <span class="waveline"></span>
-  <svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg>
-  <span class="waveline"></span>
-</div>
+  <div class="partrule" aria-hidden="true"><svg><use href="#wave"></use></svg></div>
 
-<!-- ============ VERIFIED / ENCLAVE ============ -->
-<section class="panel panel-ink" id="proof">
-  <div class="glow glow-dusk" aria-hidden="true"></div>
-  <div class="wrap">
-    <p class="kicker">05 — sealed in the enclave</p>
-    <h2 class="reveal-h">The decision never leaves the TEE.</h2>
-    <div class="statgrid">
-      <div class="stat" data-drift="14"><b data-count="11682878">0</b><span>commit block — before start</span></div>
-      <div class="stat" data-drift="34"><b data-count="2">0</b><span>defends, 2 EIP-712 receipts</span></div>
-      <div class="stat" data-drift="54"><b data-count="71">0</b><span>tests green across the monorepo</span></div>
-      <div class="stat" data-drift="74"><b data-count="5">0</b><span>≤ HTTP calls per tick (uses 2)</span></div>
-    </div>
-    <div class="term">
-      <div class="term-bar"><i></i><i></i><i></i><span>cre workflow simulate workflow --target staging-settings</span></div>
-      <pre class="term-body" id="termBody">
-✓ Workflow compiled
-╭──────────────────────────────────────────────────────────────╮
-│ Trigger requested TEE Execution — your trigger will run in:  │
-│     · AWS Nitro in us-west-2                                 │
-│ User logs for this trigger will not leave the TEE.           │
-╰──────────────────────────────────────────────────────────────╯
+  <!-- ============ V · THE ENCLAVE ============ -->
+  <section class="passage" id="enclave">
+    <div class="prose">
+      <h2>Sealed in the enclave</h2>
+      <p>The controller runs under Chainlink CRE as a confidential
+      <code>handlerInTee</code> workflow. Four secrets (the 13-parameter policy, the salt,
+      an RPC credential, the wallet key) are fetched inside an attested AWS Nitro enclave
+      and exist nowhere else: not in a config file, not in a log, not in this repository.
+      Each tick is one batched chain read, a decision, and one batched send — two HTTP
+      requests of a five-request quota. The handler returns a single word.</p>
+      <div class="term">
+        <div class="term-bar"><span>cre workflow simulate workflow --target staging-settings</span></div>
+        <pre class="term-body">✓ Workflow compiled
+│ Trigger requested TEE Execution — your trigger will run in:
+│     · AWS Nitro in us-west-2
+│ User logs for this trigger will not leave the TEE.
 policy → salt → key   fetched inside the enclave
 1 batched read · decide() · sign · 1 batched send
 status: <b>DEFENDED</b></pre>
+      </div>
     </div>
-    <p class="fine center">Four Vault secrets — the 13-parameter policy, the salt, the RPC credential, the wallet key — exist only inside the attested enclave. The handler returns one word.</p>
-  </div>
-</section>
+    <aside class="ledger" aria-label="Enclave facts">
+      <div class="slip">
+        <h3 class="slip-title">Runs today</h3>
+        <p class="slip-note">The confidential handler runs under the CRE runtime via
+        <code>cre workflow simulate</code>; DON deployment awaits Confidential Workflows
+        early access — requested, one command when granted.</p>
+      </div>
+      <div class="slip">
+        <h3 class="slip-title">Tested</h3>
+        <p class="slip-big">71 + 14</p>
+        <p class="slip-note">unit tests and Solidity tests green; the local challenge
+        contract is proven byte-for-byte identical to the deployed official one.</p>
+      </div>
+    </aside>
+  </section>
 
-<!-- ============ RUN IT ============ -->
-<section class="panel panel-run" id="run">
-  <div class="run-sky" aria-hidden="true"></div>
-  <svg class="compass-bg compass-run" id="compassRun" aria-hidden="true"><use href="#compass"></use></svg>
-  <div class="wrap">
-    <p class="kicker">06 — run it yourself</p>
-    <h2 class="reveal-h">Anyone can check the keel.</h2>
-    <div class="runcols">
-      <div class="runcard">
-        <h4><svg class="ic"><use href="#anchor"></use></svg> Verify the live run</h4>
+  <!-- ============ CLOSE ============ -->
+  <section class="close" id="verify">
+    <p class="verdict">ALL ROUNDS CONSISTENT</p>
+    <p class="verdict-sub">the independent verifier’s verdict on the live Sepolia run —
+    commitment ✓ · signers ✓ · digests ✓ · reconstructed HF ✓</p>
+    <div class="close-cols">
+      <div class="close-card">
+        <h3>Check it yourself</h3>
         <pre>git clone https://github.com/sairammr/keel
 bun install
-bun run verify     # → ALL ROUNDS CONSISTENT
-(cd app && bun run dev)   # /verify /hunter /replay</pre>
+bun run verify        <span class="cm"># → ALL ROUNDS CONSISTENT</span>
+cd app && bun run dev <span class="cm"># /verify /hunter /replay</span></pre>
       </div>
-      <div class="runcard">
-        <h4><svg class="ic"><use href="#compass"></use></svg> Simulate the enclave</h4>
+      <div class="close-card">
+        <h3>Run the enclave</h3>
         <pre>cre workflow simulate workflow \
   --target staging-settings \
   --non-interactive --trigger-index 0</pre>
-        <p class="fine">Runs the confidential <code>handlerInTee</code> under the CRE runtime — no deploy access needed.</p>
       </div>
     </div>
-    <div class="links">
-      <a href="https://github.com/sairammr/keel" target="_blank" rel="noopener">Repository ↗</a>
-      <a href="https://sepolia.etherscan.io/address/0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71" target="_blank" rel="noopener">PolicyCommit ↗</a>
-      <a href="https://sepolia.etherscan.io/address/0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6" target="_blank" rel="noopener">Receipts ↗</a>
-    </div>
-  </div>
+    <nav class="close-links" aria-label="External evidence">
+      <a href="https://github.com/sairammr/keel" target="_blank" rel="noopener">Repository</a>
+      <a href="https://sepolia.etherscan.io/address/0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71" target="_blank" rel="noopener">PolicyCommit on Etherscan</a>
+      <a href="https://sepolia.etherscan.io/address/0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6" target="_blank" rel="noopener">Receipts on Etherscan</a>
+    </nav>
+  </section>
+
   <footer class="foot">
     <svg class="foot-ship" aria-hidden="true"><use href="#ship"></use></svg>
-    <p>KEEL — built for ETHOnline 2026 · Chainlink CRE Confidential Workflows.<br>
-    Sky: original artwork. Glyphs (ship, compass, anchor, wave): Icooon Mono &amp; friends via SVG Repo, public domain.</p>
+    <p>KEEL — ETHOnline 2026 · Chainlink CRE Confidential Workflows.<br>
+    Sky: original artwork. Glyphs: Icooon Mono &amp; contributors via SVG Repo, public domain.</p>
   </footer>
-</section>
 
-</div><!-- /smooth-content -->
-</div><!-- /smooth-wrapper -->
+</main>
 
-<!-- symbols -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="ship" viewBox="0 0 512 512">
       <path fill="currentColor" d="M401.902,297.035l-22.823,33.602v-57.562l101.117-6.488c-21.492-23.878-16.72-87.176-7.159-106.282 l-93.958,14.906v-13.018l75.155-10.574c-17.103-21.369-19.244-66.272-3.212-94.064l-71.944,15.608V61.64 c4.151-2.362,6.986-6.766,6.986-11.882c0-7.567-6.129-13.704-13.696-13.704c-7.575,0-13.704,6.137-13.704,13.704 c0,5.115,2.836,9.52,6.987,11.882v14.431l-52.536,11.408c-27.784,34.215,4.282,83.401,4.282,83.401l48.254-6.799v13.27 l-58.175,9.235c-25.078,41.806,4.781,90.755,4.781,90.755l53.394-3.416v58.68H256.894l-24.171-35.571h-20.495v-16.67l73.824-4.462 c-18.828-20.911-14.627-76.341-6.276-93.06l-67.548,10.1v-17.259l66.338-9.332c-16.728-20.904-18.82-64.826-3.138-91.998 l-63.2,13.712v-8.964c3.938-2.312,6.603-6.554,6.603-11.432c0-7.37-5.965-13.336-13.32-13.336c-7.354,0-13.312,5.965-13.312,13.336 c0,4.878,2.672,9.12,6.595,11.432v11.874l-58.256,12.633c-27.18,33.471,4.192,81.57,4.192,81.57l54.064-7.6v17.381l-72.721,10.885 c-21.966,36.601,4.176,79.47,4.176,79.47l68.544-4.151v15.87H72.148l-48.344-79.004L0,226.995c0,0,55.495,112.778,112.778,193.342 c22.995,32.336,57.284,50.118,87.731,53.696c11.555,1.356,32.18,1.912,56.107,1.912c55.895,0,129.792-2.974,147.974-5.491 c23.935-3.294,59.074-5.36,83.238-53.696C503.117,386.188,512,297.035,512,297.035H401.902z M141.878,333.955H94.196L83.262,315.83 h58.616V333.955z M198.794,333.955h-43.49V315.83h43.49V333.955z M212.228,333.955V315.83h10.542l12.307,18.125H212.228z M436.362,333.955H399.54l12.315-18.125h24.507V333.955z M449.797,333.955V315.83h41.111c-0.727,5.614-1.56,11.751-2.509,18.125 H449.797z"/>
-    </symbol>
-    <symbol id="compass" viewBox="0 0 100 100">
-      <path fill="currentColor" d="M49.945-.172c-.742-.004-1.149.502-1.263 1.094L45.617 11.26a38.804 38.804 0 0 0-19.94 8.277c-3.183-1.728-6.365-3.464-9.55-5.183c-.59-.318-1.106-.293-1.584.187s-.342 1.187-.072 1.697l5.103 9.4a38.797 38.797 0 0 0-8.32 19.985c-3.48 1.032-6.965 2.055-10.44 3.094c-.64.192-.988.574-.986 1.252c.002.677.597 1.082 1.149 1.252l10.271 3.043a38.804 38.804 0 0 0 8.277 20.043c-1.737 3.202-3.484 6.402-5.213 9.605c-.317.59-.292 1.104.188 1.582s1.187.344 1.697.074l9.453-5.13a38.8 38.8 0 0 0 19.971 8.306c1.032 3.48 2.057 6.966 3.096 10.442c.192.64.574.988 1.252.986c.677-.002 1.082-.597 1.252-1.149l3.043-10.271a38.745 38.745 0 0 0 20.076-8.318l9.492 5.154c.689.35 1.154.412 1.682-.11c.527-.521.458-1.168.12-1.667l-5.167-9.524a38.835 38.835 0 0 0 8.267-20.016l10.327-3.06c.734-.239 1.107-.524 1.11-1.266c.005-.742-.501-1.149-1.093-1.263l-10.373-3.075a38.841 38.841 0 0 0-8.287-19.955l5.129-9.447c.35-.688.412-1.154-.11-1.682c-.604-.525-1.111-.367-1.667-.119l-9.465 5.139a38.737 38.737 0 0 0-20.041-8.303L51.21.94c-.239-.735-.524-1.108-1.266-1.112zm-.002 5.238V44a6 6 0 0 0-2.892.775l-6.244-7.912zm5.25 9.311a35.798 35.798 0 0 1 16.256 6.717l-12.289 6.67zm-10.508.031l-3.943 13.305c-4.066-2.211-8.133-4.412-12.2-6.621a35.815 35.815 0 0 1 16.143-6.684zm-26.48 3.795l19.568 19.531l-.01.03l-7.476 2.216zm44 19.55l-.094-.026l-2.199-7.42l21.82-12.08zm16.67-9.257a35.815 35.815 0 0 1 6.717 16.19l-13.356-3.96zm-57.746.01l6.635 12.223l-13.368 3.962a35.796 35.796 0 0 1 6.733-16.185zm41.883 12.266l31.922 9.171H56a6 6 0 0 0-.791-2.92zm-19.01 9.171L44 50a6 6 0 0 0 .729 2.865l-7.899 6.217l-7.828-2.242l-23.996-6.871zm41.623 5.248a35.795 35.795 0 0 1-6.709 16.243l-6.664-12.28zm-71.232.004l13.355 3.957c-2.227 4.096-4.443 8.193-6.668 12.29a35.809 35.809 0 0 1-6.687-16.247zm38.503.059l6.221 7.79l-2.262 7.897l-6.886 24.053l-.026-38.996c1.057.002 2.153-.274 2.953-.744zm16.811 4.654l12.104 21.865L62.176 62.14zm-31.953 2.297l2.23 7.522l-21.822 12.107zm21.416 9.992l12.318 6.69a35.812 35.812 0 0 1-16.293 6.72zm-18.438.053c1.317 4.454 2.642 8.901 3.96 13.354A35.797 35.797 0 0 1 28.52 78.88z"/>
-    </symbol>
-    <symbol id="anchor" viewBox="0 0 16 16">
-      <path fill="currentColor" d="M11 3C11 4.30622 10.1652 5.41746 9 5.82929V13.917C11.5125 13.4955 13.4955 11.5125 13.917 9H12V7H16V8C16 12.4183 12.4183 16 8 16C3.58172 16 0 12.4183 0 8V7H4V9H2.08296C2.50448 11.5125 4.48749 13.4955 7 13.917V5.82929C5.83481 5.41746 5 4.30622 5 3C5 1.34315 6.34315 0 8 0C9.65685 0 11 1.34315 11 3Z"/>
     </symbol>
     <symbol id="wave" viewBox="0 0 32 32">
       <path fill="currentColor" d="M0 22.848q0 2.496 1.216 4.608t3.328 3.328 4.608 1.216 4.576-1.216 3.328-3.328 1.216-4.608v-13.696q0-1.92 1.344-3.232t3.232-1.344q1.888 0 3.232 1.344t1.344 3.232v20.576q0 0.928 0.672 1.6t1.632 0.672 1.6-0.672 0.672-1.6v-20.576q0-2.496-1.216-4.608t-3.328-3.328-4.608-1.216-4.576 1.216-3.328 3.328-1.216 4.608v13.696q0 1.888-1.344 3.232t-3.232 1.344-3.232-1.344-1.344-3.232v-20.576q0-0.96-0.672-1.6t-1.632-0.672-1.6 0.672-0.672 1.6v20.576z"/>
@@ -280,7 +313,6 @@ bun run verify     # → ALL ROUNDS CONSISTENT
 
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
-<script src="vendor/SplitText.min.js"></script>
 <script src="vendor/DrawSVGPlugin.min.js"></script>
 <script src="js/main.js"></script>
 </body>
