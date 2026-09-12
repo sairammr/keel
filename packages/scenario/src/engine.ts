@@ -120,6 +120,7 @@ export function runScenario(
       mirror.now = tickTime;
 
       const P = mirror.P;
+      const hfBpPre = hfBpOf(mirror.C, mirror.D, P); // HF the controller observes, before any action
       const input: DecideInput = {
         policy,
         salt,
@@ -127,7 +128,7 @@ export function runScenario(
         round,
         collateral: mirror.C,
         debt: mirror.D,
-        hfBp: hfBpOf(mirror.C, mirror.D, P),
+        hfBp: hfBpPre,
         lastActionRound,
         nowS: tickTime,
         startedS: t0,
@@ -152,6 +153,7 @@ export function runScenario(
         round,
         price: P,
         hf100: mirror.hf100(),
+        hfBpPre,
         hfBp: hfBpOf(mirror.C, mirror.D, P),
         collateral: mirror.C,
         debt: mirror.D,

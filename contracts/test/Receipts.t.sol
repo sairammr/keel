@@ -50,9 +50,27 @@ contract ReceiptsTest is Test {
         receipts.post(r, sig);
         assertEq(receipts.count(participant), 1);
 
+        // a distinct receipt (different actionNonce → different digest) posts fine
+        Receipts.Receipt memory r2 = _receipt();
+        r2.actionNonce = 8;
+        bytes memory sig2 = _sign(signerKey, r2);
+        vm.prank(participant);
+        receipts.post(r2, sig2);
+        assertEq(receipts.count(participant), 2);
+    }
+
+    function testReplaySameReceiptReverts() public {
+        Receipts.Receipt memory r = _receipt();
+        bytes memory sig = _sign(signerKey, r);
+
         vm.prank(participant);
         receipts.post(r, sig);
-        assertEq(receipts.count(participant), 2);
+
+        // re-posting the identical receipt+sig is rejected
+        vm.prank(participant);
+        vm.expectRevert(bytes("replay"));
+        receipts.post(r, sig);
+        assertEq(receipts.count(participant), 1);
     }
 
     function testPostWrongSignerReverts() public {

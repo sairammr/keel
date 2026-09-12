@@ -32,7 +32,9 @@ export interface ReconRound {
   price: bigint;
   cPre: bigint; // collateral entering the round (before this round's action)
   dPre: bigint; // debt entering the round
-  hfBpPre: bigint; // HF entering the round
+  hfBpPre: bigint; // HF entering the round, reconstructed from cumulative events (trustworthy)
+  hfBpReported?: bigint; // HF the participant self-reported in the receipt, if any
+  hfBpMismatch?: boolean; // true iff hfBpReported disagrees with the reconstructed hfBpPre
   acted: boolean;
   kind?: "repay" | "deposit" | "withdraw" | "borrow";
   amount?: bigint;
@@ -159,7 +161,11 @@ export async function reconstruct(
     const or = receiptByRound.get(r);
     const cPre = C;
     const dPre = D;
-    const hfBpPre = or ? or.receipt.hfBp : hfBpOf(cPre, dPre, prices[r]!);
+    // Always trust the independently reconstructed HF, never the receipt's self-reported value —
+    // a participant could post a doctored hfBp to make an inconsistent action look consistent.
+    const hfBpPre = hfBpOf(cPre, dPre, prices[r]!);
+    const hfBpReported = or?.receipt.hfBp;
+    const hfBpMismatch = hfBpReported !== undefined && hfBpReported !== hfBpPre;
     const roundEvs = evByRound.get(r) ?? [];
     for (const e of roundEvs) {
       if (e.kind === "deposit") C += e.amount;
@@ -175,6 +181,8 @@ export async function reconstruct(
       cPre,
       dPre,
       hfBpPre,
+      hfBpReported,
+      hfBpMismatch,
       acted,
       kind: first?.kind ?? (or ? ACTION_KIND[or.receipt.action as 1 | 2 | 3] : undefined),
       amount: first?.amount ?? or?.receipt.amount,

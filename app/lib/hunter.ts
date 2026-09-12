@@ -29,12 +29,16 @@ export interface Posterior {
   spreadBp: number; // observed acted-HF spread
 }
 
-type ObsIn = { price: number; hfBp: number; action?: unknown };
+type ObsIn = { price: number; hfBp: number; hfBpPre?: number; action?: unknown };
 
-function traceObs(trace: { ticks: { price: bigint; hfBp: bigint; action?: unknown }[] }): ObsIn[] {
+function traceObs(trace: {
+  ticks: { price: bigint; hfBp: bigint; hfBpPre?: bigint; action?: unknown }[];
+}): ObsIn[] {
   return trace.ticks.map((t) => ({
     price: Number(t.price) / 100,
     hfBp: Number(t.hfBp),
+    // pre-action HF is what the hunter must see (post-action HF is biased upward — P2.1)
+    hfBpPre: t.hfBpPre != null ? Number(t.hfBpPre) : undefined,
     action: t.action,
   }));
 }
@@ -61,7 +65,9 @@ function infer(obs: { h: number; a: 0 | 1 }[]): Posterior {
 }
 
 // Posterior for one run (real trace → obs → inference).
-export function posteriorForRun(trace: { ticks: { price: bigint; hfBp: bigint; action?: unknown }[] }): Posterior {
+export function posteriorForRun(trace: {
+  ticks: { price: bigint; hfBp: bigint; hfBpPre?: bigint; action?: unknown }[];
+}): Posterior {
   return infer(obsFromTrace(traceObs(trace)));
 }
 

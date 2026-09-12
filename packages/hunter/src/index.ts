@@ -6,17 +6,20 @@ export { attack, scaleEconomics, type Tap, type AttackPosterior, type AttackOpts
 import { H_PER_DOLLAR } from "./m2";
 import type { Obs } from "./m1";
 
-type Tick = { price: number; hfBp: number; action?: unknown };
+type Tick = { price: number; hfBp: number; hfBpPre?: number; action?: unknown };
 
 /**
  * Convert a scenario-engine trace into M1/M2 observations: one Obs per distinct
  * price level, a=1 iff an action landed while price sat at that level.
- * h is the health factor at the level (hfBp/10000, falling back to price/1794.87).
+ * h is the PRE-action health factor the controller observed (hfBpPre/10000). We must
+ * never feed post-action hfBp here — after Keel defends, HF jumps back up, which would
+ * bias every acted round's observation upward and corrupt the inference (P2.1).
+ * Falls back to post-action hfBp, then to price/1794.87, only if hfBpPre is absent.
  */
 export function obsFromTrace(ticks: Tick[]): Obs[] {
   const byPrice = new Map<number, { h: number; a: 0 | 1 }>();
   for (const t of ticks) {
-    const h = t.hfBp ? t.hfBp / 10000 : t.price * H_PER_DOLLAR;
+    const h = t.hfBpPre != null ? t.hfBpPre / 10000 : t.hfBp ? t.hfBp / 10000 : t.price * H_PER_DOLLAR;
     const acted = t.action != null;
     const prev = byPrice.get(t.price);
     if (!prev) byPrice.set(t.price, { h, a: acted ? 1 : 0 });

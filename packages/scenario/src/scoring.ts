@@ -16,7 +16,8 @@ export interface Tick {
   round: number;
   price: bigint;
   hf100: bigint;
-  hfBp: bigint;
+  hfBpPre: bigint; // HF entering the round — what the controller observed BEFORE acting (P2.1 fix)
+  hfBp: bigint; // HF after this round's action (display); do NOT feed to the hunter — use hfBpPre
   collateral: bigint;
   debt: bigint;
   armBp: bigint;

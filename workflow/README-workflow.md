@@ -18,10 +18,12 @@ Spec: KEEL build plan §3 (architecture), §4.2 (state reconstruction), §4.8 (h
 - `src/codehash.ts` — `bun run codehash` prints keccak256 of the controller bundle.
 
 ## Setup
+`workflow.yaml` points `secrets-path: "../secrets.yaml"`, so both files live at the **repo root**.
+Run from the repo root:
 ```bash
 bun install
-cp .env.example .env            # fill in real values locally (never commit)
-cp secrets.example.yaml secrets.yaml
+cp workflow/.env.example .env                 # fill in real values locally (never commit)
+cp workflow/secrets.example.yaml secrets.yaml # 4 secret ids incl. the packed keel_policy JSON
 ```
 
 ## Verify
@@ -71,9 +73,12 @@ done
 ```
 
 ## R2 fallback: non-TEE deploy
-If confidential (`nitro`) execution access is not granted in time, build with `KEEL_TEE=0`. The
-same handler registers via the plain `handler` entry (no TEE constraint, no attestation, secrets
-exposed to the DON) so the pipeline still deploys and runs. Default is `KEEL_TEE=1` (confidential).
+If confidential (`nitro`) execution access is not granted in time, set `"tee": false` in
+`config.*.json`. The same handler then registers via the plain `handler` entry (no TEE constraint,
+no attestation, **secrets — including the raw private key — are exposed to the DON**) so the
+pipeline still deploys and runs. `config.staging.json` / `config.production.json` ship `"tee": true`
+(confidential); only flip it as a last resort. There is no `KEEL_TEE` env flag — the mode is the
+`tee` field in the config file, read by `configSchema` in `workflow/src/config.ts`.
 
 ## Notes
 - `handlerInTee(trigger, fn, {})` — the 3rd arg is the TEE constraint (`{}` = any region);

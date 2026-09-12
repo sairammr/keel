@@ -56,10 +56,11 @@ export interface AuditReport {
   policyHashOk?: boolean;
   signersOk: boolean; // every receipt recovers to the committed signer (from calldata sig)
   digestsOk: boolean; // recomputed EIP-712 digest == emitted digest
+  hfReportsOk: boolean; // every receipt's self-reported hfBp matches the reconstructed HF
   liquidated: boolean;
   rows: AuditRow[]; // present only when policy+salt available
   roundsConsistent: boolean;
-  verdict: "ALL ROUNDS CONSISTENT" | "COMMITMENT MISMATCH" | "SIGNER MISMATCH" | "ROUND INCONSISTENT" | "NO REVEAL — RECEIPTS ONLY";
+  verdict: "ALL ROUNDS CONSISTENT" | "COMMITMENT MISMATCH" | "SIGNER MISMATCH" | "RECEIPT HF MISMATCH" | "ROUND INCONSISTENT" | "NO REVEAL — RECEIPTS ONLY";
 }
 
 export interface AuditOpts {
@@ -129,9 +130,12 @@ export async function audit(run: ReconstructedRun, opts: AuditOpts): Promise<Aud
     roundsConsistent = false; // can't audit rounds without the reveal
   }
 
+  const hfReportsOk = run.rounds.every((r) => !r.hfBpMismatch);
+
   const verdict: AuditReport["verdict"] =
     !signersOk ? "SIGNER MISMATCH"
     : commitmentOk === false ? "COMMITMENT MISMATCH"
+    : !hfReportsOk ? "RECEIPT HF MISMATCH"
     : !(policy && salt) ? "NO REVEAL — RECEIPTS ONLY"
     : !roundsConsistent ? "ROUND INCONSISTENT"
     : "ALL ROUNDS CONSISTENT";
@@ -144,6 +148,7 @@ export async function audit(run: ReconstructedRun, opts: AuditOpts): Promise<Aud
     policyHashOk,
     signersOk,
     digestsOk,
+    hfReportsOk,
     liquidated: run.liquidated,
     rows,
     roundsConsistent,

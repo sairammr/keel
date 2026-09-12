@@ -1,6 +1,9 @@
 import { expect, test, describe } from "bun:test";
 import { m1, m2, attack, obsFromTrace, obsFromChain, type Obs } from "./index";
 import type { Policy } from "../../controller/src/index.ts";
+import { runScenario, KEEL as KEEL_STRAT, DEFAULT_KEEL_POLICY } from "../../scenario/src/engine.ts";
+import { makeStarter } from "../../scenario/src/starter.ts";
+import { generateTest } from "../../scenario/src/scenario.ts";
 
 const H_PER_DOLLAR = 1 / 1794.87;
 const price = (h: number) => h / H_PER_DOLLAR; // dollars for a given HF
@@ -130,5 +133,48 @@ describe("numerical safety", () => {
     const acted = obs.find((o) => o.a === 1);
     expect(acted).toBeDefined();
     expect(acted!.h).toBeCloseTo(1.08, 4);
+  });
+
+  test("obsFromTrace prefers pre-action HF over biased post-action HF (P2.1)", () => {
+    // acted round: pre-action HF 1.07 (the observation), post-action HF 1.12 (Keel defended).
+    // The hunter must see 1.07, never the restored 1.12.
+    const obs = obsFromTrace([
+      { price: 1849, hfBp: 11200, hfBpPre: 10700, action: { kind: "deposit" } },
+    ]);
+    expect(obs[0]!.h).toBeCloseTo(1.07, 4);
+  });
+});
+
+// End-to-end: the headline claim ("fixed threshold collapses, Keel stays wide") proven on
+// observations produced by actually running the real controller decide() through the engine —
+// NOT on hand-built synthetic obs. Also a regression guard for P2.1: if the engine ever feeds
+// post-action HF back into obsFromTrace, the Keel band artificially collapses and this fails.
+describe("end-to-end — real engine → obsFromTrace → M1", () => {
+  const SALT_E2E = new Uint8Array(32).fill(11);
+  const scenarios = generateTest();
+
+  const aggregate = (strategy: Parameters<typeof runScenario>[4]): Obs[] => {
+    const obs: Obs[] = [];
+    for (const scen of scenarios) {
+      const trace = runScenario(scen, DEFAULT_KEEL_POLICY, SALT_E2E, { cronPeriod: 300 }, strategy);
+      obs.push(
+        ...obsFromTrace(
+          trace.ticks.map((t) => ({
+            price: Number(t.price) / 100,
+            hfBp: Number(t.hfBp),
+            hfBpPre: Number(t.hfBpPre),
+            action: t.action,
+          })),
+        ),
+      );
+    }
+    return obs;
+  };
+
+  test("Keel's inferred threshold band is strictly wider than the fixed-threshold starter's", () => {
+    const keelWidth = m1(aggregate(KEEL_STRAT)).hpd90.width;
+    const starterWidth = m1(aggregate(makeStarter(10800, 11500))).hpd90.width;
+    // Both are real controller runs; the only difference is Keel's HMAC jitter on the trigger.
+    expect(keelWidth).toBeGreaterThan(starterWidth);
   });
 });

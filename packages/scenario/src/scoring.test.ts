@@ -7,6 +7,7 @@ function mkTick(over: Partial<Tick>): Tick {
     round: 1,
     price: 200000n,
     hf100: 111n,
+    hfBpPre: 11143n,
     hfBp: 11143n,
     collateral: 500n,
     debt: 700000n,

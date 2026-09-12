@@ -27,6 +27,7 @@ contract Receipts {
     bytes32 public immutable DOMAIN_SEPARATOR;
 
     mapping(address => uint256) private _count;
+    mapping(bytes32 => bool) private _used; // EIP-712 digest → posted, to reject replays
 
     event ReceiptPosted(
         address indexed participant,
@@ -79,6 +80,8 @@ contract Receipts {
         bytes32 digest = digestOf(r);
         address signer = digest.recover(sig);
         require(signer == c.signer, "bad signer");
+        require(!_used[digest], "replay");
+        _used[digest] = true;
 
         uint256 index = _count[msg.sender];
         _count[msg.sender] = index + 1;

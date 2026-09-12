@@ -17,11 +17,11 @@ Completion is tracked in `PLAN.md`. As of this commit:
 - ✅ **P1.2 log range** — `startBlock` required (official `11661556`); PriceUpdate logs before `ChallengeStarted` are excluded.
 - ✅ **P1.3 reproducible `controllerCodeHash`** — keccak of the source tree (not a build artifact); `bun run codehash --check`.
 - ✅ **P1.4 faithful local `ChallengeLending`** — the local contract is a verbatim copy of the official 0.8.36 source (`contracts/src/official/`), **proven byte-for-byte** to the deployed contract via `bun run script/fidelity.ts` (metadata stripped). The TS mirror matches its exact integer maths (liquidation rounding, bounded debt-time, `burnFrom`, repeat liquidation, `borrow`, `minCollateral`), cross-checked over 200 random sequences against a real Anvil deployment. The on-chain deposit path is exercised in the E2E (funded by the 5.00 spare vETH `join()` mints).
-- ⚠️ **Phase 2 evaluation** — the engine records post-action HF, so Hunter/verify numbers are not yet trustworthy (P2.1).
+- ✅ **Phase 2 evaluation (P2.1 fixed)** — the engine now records **pre-action** HF (`Tick.hfBpPre`) and the Hunter infers from it, so posteriors reflect what the controller actually observed. Scores were never affected (they read mirror liquidation/debt-time, not tick HF).
 - ✅ **P3.1/P3.2 CRE runtime** — the workflow is a real `cre init`-shaped project (`project.yaml`, `workflow/workflow.yaml`, zod config, packed secrets, WASM-safe handler). `cre workflow simulate workflow --target staging-settings` compiles to WASM, runs the confidential `handlerInTee`, does the ≤5-call batched read against Sepolia, and returns a status. Quota-compliant (1 read + 1 send ≤ 5 HTTP calls).
 - ✅ **Live on Sepolia (staging)** — faithful `ChallengeLending` + `PolicyCommit`/`Receipts` deployed; a full crash scenario ran on-chain: commit-before-start, real defends + EIP-712 receipts, reveal (see `docs/deployment/addresses.md`).
 - ⚠️ **Deployment to the DON** — needs CRE Early Access (`Deploy Access: Not enabled`); simulation works without it.
-- ⚠️ **Phase 4 app** — `/verify` uses engine-generated demo data, not on-chain reads.
+- ✅ **Phase 4 app (P4.2 done)** — `/verify` reconstructs everything from Sepolia events via `packages/verifier` (real RPC reads, in-browser hashing/signing). `/hunter` and `/replay` offer a chain-sourced mode alongside the engine-simulated one, each honestly labelled.
 
 ---
 
@@ -53,7 +53,7 @@ HF(price) = price / 1794.87
 | `packages/hunter` | Real Bayesian adversary: M1 (fixed threshold) vs M2 (threshold + jitter), hunt price, attack sim. | ✅ tested |
 | `contracts` | Foundry. `PolicyCommit`, `Receipts` (EIP-712), + a **byte-for-byte faithful** copy of the official `ChallengeLending` + tokens (`src/official/`) for end-to-end testing. | ✅ tested (13); fidelity vs on-chain `MATCH` |
 | `workflow` | Chainlink CRE `handlerInTee` confidential workflow. Commit-on-first-tick, receipts, `pending` nonce, no policy in logs. Official on-chain ABI. | ✅ typechecks + unit-tested; not yet run under the CRE runtime (Phase 3) |
-| `app` | Next.js 15 dashboard: split-screen replay, Hunter panel + attack, Verify/Reveal. | ✅ builds; ⚠️ `/verify` still uses engine-generated demo data, not on-chain reads (Phase 4) |
+| `app` | Next.js 15 dashboard: split-screen replay, Hunter panel + attack, Verify/Reveal. | ✅ builds; `/verify` reads live Sepolia via `keel-verifier`; `/hunter`+`/replay` have chain + engine modes |
 
 ## The controller (shared code, one source of truth)
 
@@ -65,7 +65,9 @@ The exact `decide()` that runs in the enclave is the exact function the app's re
 2. **Receipts.** Each `Receipts.post` carries `commit == commits[participant].hash` and an EIP-712 signature whose `ecrecover` equals the committed `signer`. The action tx is at nonce `n`, its receipt at `n+1`, same EOA — visible on Etherscan.
 3. **Reveal.** Paste `(policyBytes, salt)`; `keccak256(keccak256(policy) ‖ salt)` must equal the on-chain commit. Then every round's trigger is recomputed from public `PriceUpdate` logs and each action/inaction is checked against the committed policy.
 
-The `/verify` page in the app currently does all three in a **local-proof mode** with real in-browser hashing/signing against engine-generated data. Reading committed hashes and receipts from deployed Sepolia addresses is Phase 4 (P4.2). EIP-712 domain: `{ name: "KeelReceipts", version: "1", chainId: 11155111, verifyingContract }`.
+The `/verify` page does all three against **live Sepolia**: `packages/verifier` reads the committed hash + receipts from the deployed `PolicyCommit`/`Receipts` addresses, recovers each receipt's signer from the `post()` tx calldata, recomputes the EIP-712 digest, independently reconstructs each round's pre-action HF from `PriceUpdate` logs (it does **not** trust the receipt's self-reported `hfBp` — a mismatch surfaces as `RECEIPT HF MISMATCH`), and on reveal recomputes `keccak256(policyHash ‖ salt)` against the on-chain commit. EIP-712 domain: `{ name: "KeelReceipts", version: "1", chainId: 11155111, verifyingContract }`.
+
+> **On confidentiality (T1), stated plainly:** the receipt-signing key is **derived deterministically from the salt** (`keccak(salt‖"keel/receipt/v1") mod n`), not from hardware attestation — anyone holding the salt can reproduce it, which is by design (reveal must be reproducible). The confidential `handlerInTee` path has only been **simulated** (`cre workflow simulate`), not run in a real DON/enclave (pending CRE Early Access); with `tee: false` the identical handler runs non-confidentially and secrets are exposed to the DON. The live on-chain scenario was posted by `scripts/run-scenario-live.ts` / the `simulate --broadcast` loop, which runs the **same** controller code but not inside an attested TEE. Security of the *policy* rests on `armBp`/`targetBp` never leaving the enclave until reveal — the receipt schema enforces this (it carries no trigger fields).
 
 ## What is protected / what is not
 
