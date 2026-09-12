@@ -61,3 +61,11 @@ differentiator.
 HF = health factor (integer ×100 on-chain; bp = basis points ×10000). "Defend" = repay or
 deposit tx. "Commit" = keccak256(policyHash ‖ salt) posted pre-start. "Receipt" = EIP-712
 signed action record. "Reveal" = publishing (policyBytes, salt) post-scenario.
+
+## Brand commitments
+
+- Landing-page structure preference (user, 2026-09-13): conventional high-craft landing
+  ("actual good landing page"), craft bar = Linear / Vercel. Dense sections, short copy,
+  stat strips, one scrubbed showpiece. The essay/longform form was rejected as too wordy.
+- Type: Fraunces rejected; pair = Gloock (display) + Schibsted Grotesk (text/UI), self-hosted.
+- Sky artwork + nautical identity remain pinned.
