@@ -113,7 +113,69 @@ cre workflow simulate workflow --target staging-settings --non-interactive --tri
   --evm-tx-hash 0x85b86646f0fc9dda99d5c6c94e35cff92ef3e7abf84e750f64781a775e88a38a --evm-event-index 0
 ```
 
-## 8. Layout
+## 8. Demo runbook (full product, ~4 min — matches the video beats)
+
+One-time prep (before recording):
+
+```bash
+cd ~/Documents/GitHub/keel && bun install
+(cd app && bun run build && bun run start)        # http://localhost:3000 — reads LIVE Sepolia
+set -a; source .env; set +a                       # workflow secrets for the simulate beats
+```
+
+Then in order:
+
+**1. The hunt (the hook, ~40s)** — browser `http://localhost:3000/hunter`.
+Toggle *inference source → chain*: the Bayesian posterior computed from Keel's REAL on-chain
+(HF, acted?) log — band never collapses below the jitter floor. Then the attack console:
+the fixed-threshold starter gets stop-hunted to liquidation; Keel only de-levers at the edge.
+Line: *"this is what happens to every bot with a public trigger."*
+
+**2. The sealed agent (~45s)** — terminal:
+
+```bash
+cre workflow simulate workflow --target production-settings --non-interactive --trigger-index 0
+```
+
+Point at: the TEE banner (AWS Nitro us-west-2), the single-word result (`IDLE`/`SAFE`/`DEFENDED`).
+Nothing numeric leaves the enclave. Then the instant-reaction trigger — replay a real
+PriceUpdate event through the log trigger:
+
+```bash
+cre workflow simulate workflow --target staging-settings --non-interactive --trigger-index 1 \
+  --evm-tx-hash 0x85b86646f0fc9dda99d5c6c94e35cff92ef3e7abf84e750f64781a775e88a38a --evm-event-index 0
+```
+
+**3. The real run (~45s)** — browser `/replay`, toggle *source → chain (recorded)*:
+Keel's actual Sepolia run — HF chart, dashed line = the trigger (revealed + re-derived),
+dots = the two defends, every row an Etherscan link.
+
+**4. The proof (~40s)** — browser `/verify` (server-rendered from live Sepolia), then terminal:
+
+```bash
+bun run verify --rpc https://ethereum-sepolia-rpc.publicnode.com \
+  --lending 0xbc655f2febC8C9642C69BB746568050f53AAAc18 \
+  --policyCommit 0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71 \
+  --receipts 0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6 \
+  --participant 0x9673afB923d556979E4dfe6854d8C6e2D9994Eb4 --from 11682850
+# → commitment ✓ signers ✓ digests ✓ ALL ROUNDS CONSISTENT
+```
+
+Line: *"private isn't proof — this proves one sealed policy produced every action, without ever
+showing the policy."* Show the commit tx block precedes start() on Etherscan.
+
+**5. The scoreboard (~30s)** — terminal:
+
+```bash
+bun run scripts/eval-official.ts
+# committed policy: 0 liquidations, mean 81.48, 20/20 continuity, least capital;
+# do-nothing liquidates in all 5 official scenarios
+```
+
+**6. The close (~15s)** — Etherscan on the OFFICIAL contract: join tx + commit tx (block 11691103,
+before start). *"Joined, sealed, unpredictable, provable. KEEL."*
+
+## 9. Layout
 
 ```
 packages/{controller,scenario,hunter,verifier}   pure TS core + engine + attacker + auditor
