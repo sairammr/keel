@@ -1,6 +1,6 @@
 import { bytesToHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { cre, Runner, type TeeRuntime } from "@chainlink/cre-sdk";
+import { cre, Runner, EVMClient, logTriggerConfig, type TeeRuntime } from "@chainlink/cre-sdk";
 import {
   decide,
   solve,
@@ -143,13 +143,23 @@ async function onCronTrigger(rt: TeeRuntime<Config>): Promise<string> {
 // config.tee=true → confidential TEE handler; false → non-confidential DON handler (R2 fallback
 // when Confidential Workflows beta access is not yet granted). AWS Nitro us-west-2 is the only
 // registered TEE type/region.
+const SEPOLIA_SELECTOR = 16015286601757825753n;
+const PRICE_UPDATE_TOPIC = "0x92664190cca12aca9cd5309d87194bdda75bb51362d71c06e1a6f75c7c765711"; // PriceUpdate(uint256,uint256)
+
 const initWorkflow = (config: Config) => {
-  const trigger = new cre.capabilities.CronCapability().trigger({ schedule: config.schedule });
-  return [
-    config.tee
-      ? cre.handlerInTee(trigger, onCronTrigger, [{ tee: "nitro", regions: ["us-west-2"] }])
-      : cre.handler(trigger, onCronTrigger),
-  ];
+  // Two triggers, one handler: the cron is the heartbeat, the PriceUpdate log trigger removes
+  // the cadence assumption — we react the moment the organiser moves the price instead of up to
+  // one cron period later. The handler re-reads all state fresh, so it is trigger-agnostic.
+  const cronTrigger = new cre.capabilities.CronCapability().trigger({ schedule: config.schedule });
+  const priceTrigger = new EVMClient(SEPOLIA_SELECTOR).logTrigger(
+    logTriggerConfig({ addresses: [config.lending], topics: [[PRICE_UPDATE_TOPIC]], confidence: "LATEST" }),
+  );
+  return config.tee
+    ? [
+        cre.handlerInTee(cronTrigger, onCronTrigger, [{ tee: "nitro", regions: ["us-west-2"] }]),
+        cre.handlerInTee(priceTrigger, onCronTrigger, [{ tee: "nitro", regions: ["us-west-2"] }]),
+      ]
+    : [cre.handler(cronTrigger, onCronTrigger), cre.handler(priceTrigger, onCronTrigger)];
 };
 
 export async function main() {
