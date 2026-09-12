@@ -1,18 +1,17 @@
-# KEEL — Handoff
+# KEEL — Handoff (2026-09-13, pre-deadline)
 
-Repo: https://github.com/sairammr/keel. Working branch: **`feat/verifier-and-real-verify`**
-(commits `5589952` → `7bb9e63` → `18dc21d`; open a PR to `main` when ready).
+Repo: https://github.com/sairammr/keel (**PRIVATE — must flip to public before judging**).
+Branch: `master` (pushed, head `504a2e2`). Old feature branch `feat/verifier-and-real-verify` is merged history — ignore.
 
-**Verifiable-secrecy liquidation protection on Chainlink CRE.** The controller hides its
-health-factor policy, hides what that policy will do next (per-round jitter), *and* proves it
-never changed (keccak commit → EIP-712 receipts → reveal). Built, deployed to Sepolia, and
-verified end-to-end. The app reads the real chain — no mocked or synthetic data on `/verify`,
-and `/hunter` + `/replay` both run over Keel's real on-chain run.
+**Verifiable-secrecy liquidation protection on Chainlink CRE.** Policy (trigger/target/caps)
+lives only in the Nitro enclave and moves every round (vol-adaptive + salt jitter); secrecy is
+provable via keccak commit before start → EIP-712 receipts signed in-TEE per action → reveal
+after. Entered in **two tracks**: T3 Automated Liquidation Protection Challenge ($500) and
+T1 Best Confidential Workflow ($2,000). T2 is continuity-only (repo predates event) — not eligible.
 
-The only external gate left is CRE **DON deployment** (Confidential Workflows early access —
-requested, on the waitlist). Everything on our side is one command away when it lands.
-
-Plan of record: `PLAN.md`. App plan: `APP-BUILD-PLAN.md`. Deploy record: `docs/deployment/`.
+**DEADLINE: Sept 13, 16:00 UTC (9:30 PM IST).** After it: workflow frozen; Chainlink runs the
+one-shot scenario on the official contract within 24h (`close()` → `start()` → `updatevETHPrice()`
+rounds → `checkAllHF()` partial liquidations → `stop()` writes `loanContinuityScore` on-chain).
 
 ---
 
@@ -20,193 +19,111 @@ Plan of record: `PLAN.md`. App plan: `APP-BUILD-PLAN.md`. Deploy record: `docs/d
 
 | Area | State |
 |---|---|
-| Controller / scenario / hunter (pure TS core) | ✅ controller 23 · scenario 15 · hunter 8 tests |
-| Faithful `ChallengeLending` copy + fidelity | ✅ byte-for-byte match vs official deployed bytecode |
-| CRE confidential workflow | ✅ `cre workflow simulate` runs the TEE handler under prod quotas (≤5 HTTP calls, batched) |
-| **`packages/verifier`** (reconstruct + audit + CLI) | ✅ new; 4 tests; `bun run verify` → **ALL ROUNDS CONSISTENT** on the live stack |
-| **`/verify`** app | ✅ server-rendered from Sepolia via the verifier — no synthetic blocks, no demo addrs |
-| **`/hunter`** app | ✅ inference-source toggle: engine suite \| **chain** (Keel's real M1/M2 from on-chain logs) |
-| **`/replay`** app | ✅ source toggle: engine (live) \| **chain (recorded)** (real run + Etherscan links) |
-| Honest attack model | ✅ removed the `max_deposit:6` hobble; funds both reserves, counts repay+deposit legs, adaptive stop-hunt bounded by the liq floor |
-| Ops scripts | ✅ `scripts/fallback-runner.sh`, `scripts/liveness.sh` |
-| Confidential Workflows access form | ✅ submitted (waitlist), org `org_0NhyfJ57VzhSh1D8` |
-| **DON deployment** | ⏳ gated on early-access email; `cre whoami` → Deploy Access **Not enabled**. Google-form early-access request re-raised 2026-09-13 with join/commit tx evidence. Discord staff signal: queue may not clear before deadline → fallback runner is the plan of record |
-| Production join + commit on the official contract | ✅ 2026-09-13 — `keel-prod` joined (participant #8) + committed before start + max approvals; txs in `docs/deployment/wallets.md`. Fresh salt + policy (DEFAULT + `tjitter_bp:300`) in `.env.deploy`/`.env`. Prod simulate tick (incl. `--broadcast`) → IDLE ✅. `scripts/keel-runner.launchd.plist` ready for the scenario window |
-| Phase 5/6 (levers, hardening, docs, CI) | ⚠️ not done — see §5 |
+| Core (controller/scenario/hunter/verifier) | ✅ tests: controller 26 · hunter 10 · verifier 5 · policy 9 · scenario 14 (+1 flaky Anvil-fuzz receipt-timeout under load — logic clean, 4.9k asserts pass) |
+| **join() on official contract** | ✅ participant #8 `keel-prod`, 5 vETH / 7000 vUSD / HF 1.11 |
+| **Commit-before-start** | ✅ block 11691103, commit `0xc6d21b2d…`; handler-side re-derivation == on-chain |
+| **Approvals** | ✅ max vETH + vUSD from keel-prod to lending |
+| Gas | ✅ 0.35 SepETH on keel-prod (deployer holds ~0.6 more) |
+| **Workflow** | ✅ `handlerInTee`, 4 Vault secrets, ≤2 HTTP/tick, one-word statuses. **Two triggers**: cron (60s heartbeat, index 0) + `PriceUpdate` log trigger (LATEST confidence, index 1). Both simulate green |
+| tjitter parser fix | ✅ `workflow/src/policy.ts` accepts optional `tjitter_bp` — before this the v2 restore-jitter never reached the enclave and would have broken the commitment match |
+| controllerCodeHash | ✅ `0xd0897455…` (source-tree = configs = app; `bun run codehash --check` green). Commit binds it — **do not touch `packages/controller/src` any more** (workflow/src is free) |
+| Official-scenario eval | ✅ committed policy: **0 liquidations, mean 81.48, 20/20 continuity, least capital** — beats tuned-grid winner + starter on the official README paths (`scripts/eval-official.ts`, results in `docs/results.md`) |
+| **Fallback runner** | ✅ LIVE — pid via `pgrep -f fallback-runner`, `caffeinate -i` wrapped, logs `/tmp/keel-runner.log`, ticks every 45s (IDLE until start()). launchd blocked by macOS Documents TCC — runner is a detached nohup process; **dies on reboot, restart cmd in §4** |
+| DON deploy access | ⏳ `cre whoami` → Not enabled. CW Google form filled in Chrome tab (user must tick terms + submit). Discord: queue 24–48h, may not clear pre-deadline; **simulation is what's judged** (Darby, on record) |
+| ETHGlobal submission | ⏳ draft started (KEEL / DeFi / ⚓ filled, not created). Paste-ready copy: `docs/submission.md`. Must tick **Chainlink T1 + T3** |
+| Demo video | ❌ NOT recorded. ≤4 min, no speed-ups (manually verified). Script `docs/video-script.md`, beats in `docs/submission.md` |
+| Discord post | ⏳ drafted (idea + tx list + fork-vs-standalone question) — in session log, not posted |
 
-Last full sweep: **all green** — controller 23 · verifier 4 · hunter 8 · scenario 15 · app build OK · `bun run verify` CONSISTENT.
+## 2. On-chain records (Ethereum Sepolia)
 
----
+**Official stack** (production target, `workflow/config.production.json`):
 
-## 2. Live Sepolia deployment (fresh staging stack)
-
-Deployer / admin / participant: `0x9673afB923d556979E4dfe6854d8C6e2D9994Eb4` (funded ~0.98 SepETH; key in `.env.deploy`, gitignored, `chmod 600`).
-
-| Contract | Address |
+| What | Address / tx |
 |---|---|
-| `ChallengeLending` (faithful copy) | `0xbc655f2febC8C9642C69BB746568050f53AAAc18` |
-| `TokenvETH` | `0xd72f799E1af27E0d95aB4B9658A277A7811Fbcd0` |
-| `TokenvUSD` | `0x974727EA649Ee0EfBB6A1b1A584614838B832cB3` |
-| `PolicyCommit` | `0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71` |
-| `Receipts` | `0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6` |
+| ChallengeLending (official) | `0x88574e7Cc0027afd04951daa09B64d4441931ba1` |
+| vETH / vUSD | `0x5dED1a40c3D56dA42E7f932f781c0432556c9814` / `0x6Fe92Ead5299040f50F095860b5A0A7A2D4041A2` |
+| PolicyCommit (prod) | `0xACbf2d364817AB8c42C6573C748702BE0f7aAA6b` |
+| Receipts (prod) | `0x726717FBe26e1502c5575647d1D46E618e912Aee` |
+| Participant `keel-prod` | `0x481ab1C25907dC363d3e6Ee03aE5e651387e9Fe3` |
+| join() | `0x6a918f1241d0a33275100818e530a456b74b495f5d67b6063b1ac7ddeb7d3297` |
+| commit() | `0x1a97b6fb0cd73fdffbaf24006a01713e6b30cec79e1cae7f64b334872fa3d7a2` |
+| approve vETH / vUSD | `0xbb1a1863…13267` / `0xfa32b548…35f84` |
 
-On-chain proof (verified live): committed hash `0x69f60a2b…`, signer `0x073E0B46…`, commit block
-**11682878** (before start), `Receipts.count == 2`, survived a crash that liquidates the
-undefended position (rounds 3–5 `hf100` = 99/95/93). Full tx list in `docs/deployment/addresses.md`.
-Official contract (production target): `0x88574e7Cc0027afd04951daa09B64d4441931ba1`.
+**Staging stack** (full verified run: commit → 2 defends + receipts → reveal → `bun run verify`
+→ ALL ROUNDS CONSISTENT): addresses + tx list in `docs/deployment/addresses.md` / `wallets.md`.
 
-Wallets: `docs/deployment/wallets.md`. `keel-prod` (`0x481ab1C25907dC363d3e6Ee03aE5e651387e9Fe3`)
-is the official-contract wallet — **currently 0 SepETH, needs funding** (see §5.2).
+## 3. Secrets (never commit; all gitignored)
 
----
+- `.env.deploy` (chmod 600): `KEEL_DEMO_KEY/ADDRESS`, `KEEL_PROD_KEY/ADDRESS`, `KEEL_DEPLOY_KEY/ADDRESS`, **`KEEL_PROD_SALT`** (the sealed production salt), **`KEEL_PROD_POLICY`** (JSON, = DEFAULT + `tjitter_bp:300` — exactly what the commit binds).
+- `.env` (repo root, chmod 600): the four workflow env names (`KEEL_POLICY`, `KEEL_SALT`, `KEEL_RPC_URL`, `LIQUIDATION_PRIVATE_KEY`) + `CRE_ETH_PRIVATE_KEY` — this is what simulate/runner read.
+- Staging salt `0x5a…5a` is demo-only (already revealed on-chain). Prod salt must never appear anywhere public until the post-run reveal.
 
-## 3. How to demo
+## 4. Ops — scenario window (the only part that matters after deadline)
 
-Three layers of proof: the **app** (reads the real chain), the **on-chain record** (Etherscan
-+ `bun run verify`), and the **CRE simulation** (the confidential handler). A 4-minute demo hits
-all three.
-
-### 3a. The app (2–3 min, the main visual)
+Mac must stay awake (lid open; `caffeinate -i` already wraps the runner).
 
 ```bash
-bun install
-(cd app && bun run build && bun run start)      # http://localhost:3000  (reads live Sepolia)
+# runner health
+pgrep -f fallback-runner && tail -5 /tmp/keel-runner.log      # expect "tick ok" every ~45-75s
+
+# restart after reboot/kill (from repo root)
+cd ~/Documents/GitHub/keel && nohup bash -c 'set -a; source .env; set +a; export PATH="$HOME/.cre/bin:$PATH"; exec caffeinate -i ./scripts/fallback-runner.sh production-settings 45' >> /tmp/keel-runner.log 2>&1 &
+
+# if/when Deploy Access flips to Enabled (cre whoami) — two commands, then the DON does the window:
+cre secrets create secrets.yaml --target production-settings --secrets-auth=browser
+cre workflow deploy workflow --target production-settings
+cre workflow list --registry private && cre execution list keel
 ```
 
-Walk the three doors in order:
+During the run, watch: `cast call <lending> "positions(address)(uint256,uint256,uint256,uint256,uint256)" <keel-prod>`
+and Etherscan on keel-prod. After `stop()`: run the verifier against the official stack + reveal
+(`PolicyCommit.reveal(policyBytes, salt)` — encode via `commitmentOf`/`encodePolicyBytes` with
+`KEEL_PROD_POLICY`+`KEEL_PROD_SALT`), then `/verify` tells the whole story.
 
-1. **`/verify`** — start here. The page is server-rendered from Sepolia by `packages/verifier`.
-   Show: the live committed hash + signer + block; the receipts table (real tx links, nonces
-   57/63); the **ALL ROUNDS CONSISTENT** verdict with commitment ✓ / signer ✓ / digest ✓; then
-   the per-round audit — *every action fired exactly when HF crossed the now-revealed trigger.*
-   Say: **"private isn't proof — this proves one sealed policy produced every action, without
-   ever showing the policy."**
+## 5. Human to-dos before 16:00 UTC (priority order)
 
-2. **`/replay`** — toggle **source → chain (recorded)**. Keel's real Sepolia run on the HF
-   chart: the dashed line is the trigger (revealed + re-derived by the verifier), dots are the
-   two defends, every action row links to Etherscan. Toggle back to **engine (live)** for the
-   split-screen vs the fixed-threshold starter through any market.
+1. **Record video** (≤4 min). Beats + script: `docs/submission.md` §demo, `docs/video-script.md`.
+2. **ETHGlobal**: ethglobal.com/events/ethonline2026/project → create (KEEL/DeFi/⚓ prefilled in Chrome tab) → paste from `docs/submission.md` → tick **Chainlink T1 + T3** → submit.
+3. **Repo → public** (Settings → Danger Zone). Safe: secrets gitignored, prod salt never committed.
+4. **CW access form** (Chrome tab, all fields filled): tick Private Beta Terms + submit.
+5. Optional: post the drafted Discord message in #partner-chainlink (idea + tx list + fork-vs-standalone question) — staff replies double as judge visibility.
 
-3. **`/hunter`** — toggle **inference source → chain**. The real M1/M2 posterior computed from
-   Keel's actual on-chain `(HF, acted?)` log stream; the band stays ≥ the jitter floor. The
-   attack console: to force Keel the attacker must crash price to the liquidation edge and Keel
-   de-levers — the fixed-threshold starter falls at a shallow, discoverable trigger.
+## 6. Field intel (Discord scrape + on-chain recon, details in `docs/discord-partner-chainlink-log.md`)
 
-> UI note: the source toggles are client buttons — click the button label directly.
+- 8 participants total. Fully armed: `0x6c4c…` (ERC-8004 agent angle), `0xb8AD…` (clean-opsec fresh wallet), us. `0x12Fbc…` (nonce 898) is the sophisticate — own staging stack, MockKeystoneForwarder `report` testing, MetaMask Delegation Toolkit — but no approvals on official yet. `0xBe23…` approved vUSD only → **repay-only defender** (bleeds continuity). Two look inactive.
+- Staff on record: **simulation is what's judged**; CW access only via the Google form (CLI `cre account access` is a different system); judges assess confidentiality manually — repo/config/log inspection + "execution receipt" evidence (our receipts hit that rubric line verbatim).
+- Nobody else in the field claims verifiable secrecy / inference-attack resistance.
 
-### 3b. On-chain proof (30 s, terminal + Etherscan)
+## 7. Verify everything from a clean clone
 
 ```bash
-bun run verify \
-  --rpc https://ethereum-sepolia-rpc.publicnode.com \
+bun install && bun run test
+bun run codehash --check
+bun run verify --rpc https://ethereum-sepolia-rpc.publicnode.com \
   --lending 0xbc655f2febC8C9642C69BB746568050f53AAAc18 \
   --policyCommit 0xE0e3C43Cc464e08b35Eb28Ff235c437166AFAc71 \
   --receipts 0xf8A66135642a0DeA582e874531Ef45FB2Dd01ee6 \
-  --participant 0x9673afB923d556979E4dfe6854d8C6e2D9994Eb4 \
-  --from 11682850
-# → commitment OK ✓ · signers OK ✓ · digests OK ✓ · ALL ROUNDS CONSISTENT
-
-bun run scripts/liveness.sh staging      # balance · nonce · state · receipts · OK
+  --participant 0x9673afB923d556979E4dfe6854d8C6e2D9994Eb4 --from 11682850   # staging: ALL ROUNDS CONSISTENT
+bun run scripts/eval-official.ts                                             # official-path scores
+(cd app && bun run build && bun run start)                                   # /verify /replay /hunter (live chain)
+set -a; source .env; set +a
+cre workflow simulate workflow --target production-settings --non-interactive --trigger-index 0   # cron → IDLE
+# log trigger (replay a real PriceUpdate):
+cre workflow simulate workflow --target staging-settings --non-interactive --trigger-index 1 \
+  --evm-tx-hash 0x85b86646f0fc9dda99d5c6c94e35cff92ef3e7abf84e750f64781a775e88a38a --evm-event-index 0
 ```
 
-Open the `commit` and `reveal` txs from `docs/deployment/addresses.md` on Etherscan to show the
-commit block precedes `start()`.
-
-### 3c. CRE confidential handler (30 s, the T1 evidence)
-
-```bash
-(cd workflow && bunx cre-setup)          # one-time WASM tooling (Javy)
-# export the 4 secrets (staging/dummy values ok), then:
-KEEL_POLICY='{"base_bp":10700,"kvol_bp":10000,"volcap_bp":200,"jitter_bp":300,"tmax_bp":11100,"emerg_bp":10300,"buffer_bp":500,"target_cap_bp":12500,"halflife":4,"cooldown":1,"max_repay_bp":3000,"max_deposit":250,"t_est_s":10800}' \
-KEEL_SALT="0x$(printf '5a%.0s' {1..32})" \
-KEEL_RPC_URL="https://ethereum-sepolia-rpc.publicnode.com" \
-LIQUIDATION_PRIVATE_KEY="<funded key from .env.deploy>" \
-cre workflow simulate workflow --target staging-settings --non-interactive --trigger-index 0
-```
-
-Compiles to WASM, runs the TEE handler, does the batched Sepolia read, returns a one-word status
-(never a policy value). Simulator evidence is accepted for the confidential-workflow prize.
-
-### 3d. Drive a fresh scenario on-chain (optional, ~2 min of txs)
-
-```bash
-KEEL_DEPLOY_KEY=<funded key> bun run scripts/run-scenario-live.ts
-# deploys a fresh copy? no — reuses config.staging.json; to get a clean run, redeploy first:
-#   (cd contracts && FOUNDRY_PROFILE=official PRIVATE_KEY=<key> forge script script/Deploy.s.sol \
-#     --rpc-url $SEPOLIA --broadcast)   then update workflow/config.staging.json addresses.
-```
-
----
-
-## 4. Run & verify everything (from a clean clone)
-
-```bash
-bun install
-bun run test                     # controller 23 + verifier 4 + hunter 8 + scenario 15
-bun run verify --rpc … --lending … --policyCommit … --receipts … --participant … --from …
-bun run contracts:test           # forge
-bun run codehash --check
-(cd app && bun run build)        # 4 routes; /verify is ƒ (server-rendered from chain)
-(cd packages/verifier && bunx tsc --noEmit) && (cd packages/hunter && bunx tsc --noEmit)
-```
-
----
-
-## 5. What's left
-
-### 5.1 DON deployment (external gate)
-Wait for the Confidential Workflows early-access email (form submitted, org `org_0NhyfJ57VzhSh1D8`).
-When granted:
-```bash
-cre secrets create secrets.yaml --target production-settings --secrets-auth=browser
-cre workflow deploy workflow --target production-settings
-cre workflow list --registry private          # keel active
-cre execution list keel                        # first exec → COMMITTED
-```
-If TEE is rejected but deploy works: set `workflow/config.production.json` `tee:false`, redeploy
-with `cre.handler` (T1 evidence then from the `tee:true` simulator run). If no access at all:
-`scripts/fallback-runner.sh production-settings` on an always-on box (same code path, not DON-scheduled).
-
-### 5.2 Production run on the official contract (irreversible — needs a human decision)
-Needs `keel-prod` (`0x481ab1…`) **funded** (currently 0 SepETH; use a faucet or transfer) and an
-**uncapped RPC** (Alchemy/Infura — public caps `eth_getLogs` at 50k blocks; the official contract
-needs full-range reads). Then `join()` on `0x8857…` + commit-before-start with a **fresh production
-salt** (`openssl rand -hex 32`, never committed). This burns the one-shot commit gate — do it
-deliberately.
-
-### 5.3 On-chain starter duel (optional, makes the chain comparison two-sided)
-Currently `/hunter` and `/replay` chain modes show Keel's **real** run and a **labeled engine
-baseline** for the fixed-threshold starter. To make the starter side also on-chain, fund a second
-wallet, `join()` it on a fresh staging copy, and drive both participants through one market
-(extend `scripts/run-scenario-live.ts` to two policies). Then reconstruct both via the verifier.
-
-### 5.4 Remaining depth (Phase 5/6)
-- `withdrawCollateral` recovery (P5.1) and `borrow()` re-leverage (P5.2) levers — gated on
-  organiser answer K3 (capital measured net vs gross).
-- Operational hardening (P5.5): stuck-nonce recovery, RPC fallback, own-liquidation detection.
-- `docs/results.md` (tuner scores), CI secrets-gate (P1.5), the Aave-v3 adapter (P5.6).
-- Organiser answers **K1–K3** (price cadence, capital gross/net, discipline formula) — the
-  scoring formulas are still assumed; they gate the levers and the tuner.
-
----
-
-## 6. Layout
+## 8. Layout
 
 ```
-packages/{controller,scenario,hunter}   pure TS core (controller shared with the enclave)
-packages/verifier                        reconstruct + audit from chain events; `bun run verify`
-contracts/                               Foundry: official/ faithful copy + PolicyCommit + Receipts + fidelity.ts
-workflow/                                CRE confidential workflow (TEE handler, batched RPC)
-scripts/                                 run-scenario-live.ts · rpc-check.ts · fallback-runner.sh · liveness.sh
-app/                                     Next.js: /verify (chain) · /replay (engine|chain) · /hunter (engine|chain)
-  app/lib/{deployment,runs,hunter,engine}.ts   chain wiring + engine adapters
-docs/deployment/                         addresses.md · wallets.md · access-request.md
+packages/{controller,scenario,hunter,verifier}   pure TS core + engine + attacker + auditor
+contracts/                                        Foundry: faithful copy + PolicyCommit + Receipts
+workflow/                                         CRE confidential workflow (TEE handler, 2 triggers)
+scripts/                                          commit-prod.ts · eval-official.ts · fallback-runner.sh · liveness.sh
+app/                                              Next.js: /verify · /replay · /hunter (real chain)
+docs/                                             submission.md · results.md · video-script.md · inference-attack.md
+                                                  cre-bootcamp/ (16 scraped pages) · discord log · deployment/
 ```
 
----
-
-## 7. Secrets & keys
-- `.env.deploy` (gitignored, `chmod 600`): funded deployer + generated wallet keys. Never commit.
-- `workflow/secrets.yaml` (gitignored) maps secret ids → env vars; `secrets.example.yaml` is the template.
-- The handler returns only one-word statuses (`COMMITTED|IDLE|SAFE|DEFENDED|EMERGENCY`) — never a policy value or salt.
-- The staging salt `0x5a…5a` is a demo salt (revealed on-chain). The production salt must be fresh and live only in `.env` / the Vault DON.
+Open scoring assumptions (K1–K3: price cadence, capital gross/net, discipline formula) remain
+unanswered by organisers — survival + action counts don't depend on them; only decimals of the mean do.
