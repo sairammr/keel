@@ -213,7 +213,9 @@ export class ChainReader {
 
     return {
       blockNumber: fromHex(r[0] as Hex, "bigint"),
-      gasPrice: (fromHex(r[1] as Hex, "bigint") * 125n) / 100n,
+      // 2× + 1 gwei headroom: eth_gasPrice hugs baseFee on Sepolia, leaving a legacy tx with
+      // near-zero priority fee during fee spikes; the scenario window is no place to be underpriced.
+      gasPrice: fromHex(r[1] as Hex, "bigint") * 2n + 1_000_000_000n,
       nonce: fromHex(r[2] as Hex, "number"),
       price: this.decodeCall<bigint>(LENDING_ABI, "vETHPrice", r[3] as Hex),
       position: { collateral: pos[0]!, debt: pos[1]! },

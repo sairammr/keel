@@ -18,6 +18,7 @@ set -uo pipefail
 
 TARGET="${1:-production-settings}"
 INTERVAL="${2:-45}"
+ENV_FILE="${3:-.env}"   # cre simulate reads the env FILE, not the shell env — pass the right one
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 command -v cre >/dev/null 2>&1 || { echo "FATAL: cre CLI not on PATH"; exit 1; }
@@ -32,6 +33,7 @@ cd "$ROOT"
 while true; do
   if cre workflow simulate workflow \
         --target "$TARGET" \
+        --env "$ENV_FILE" \
         --non-interactive \
         --trigger-index 0 \
         --broadcast; then
