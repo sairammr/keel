@@ -2,7 +2,7 @@
   "name": "keel",
   "private": true,
   "version": "0.1.0",
-  "description": "Keel — verifiable-secrecy liquidation protection on Chainlink CRE",
+  "description": "Keel \u2014 verifiable-secrecy liquidation protection on Chainlink CRE",
   "workspaces": [
     "packages/*"
   ],
@@ -15,7 +15,8 @@
     "contracts:test": "cd contracts && forge test",
     "rpc-check": "bun run scripts/rpc-check.ts",
     "codehash": "bun run workflow/src/codehash.ts",
-    "verify": "bun run packages/verifier/src/cli.ts"
+    "verify": "bun run packages/verifier/src/cli.ts",
+    "site": "python3 -m http.server 4173 --directory site"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
