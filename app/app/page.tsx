@@ -130,10 +130,13 @@ export default function Home() {
           style={{ borderColor: "var(--color-ink)", background: "var(--color-wash)" }}
         >
           <div>
-            <div className="eyebrow mb-2">already live on sepolia</div>
+            <div className="eyebrow mb-2">live on sepolia · official challenge joined as participant #8</div>
             <div className="text-[17px] font-bold tracking-[-0.01em]">
               Commit → 2 defenses with signed receipts → reveal →{" "}
               <span className="mono text-[color:var(--color-ok)]">ALL ROUNDS CONSISTENT</span>
+            </div>
+            <div className="mono mt-2 text-[12px] text-[color:var(--color-muted)]">
+              policy hash sealed on the official contract before scenario start — block 11691103
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
