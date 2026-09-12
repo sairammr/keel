@@ -25,8 +25,9 @@ The Fraunces webfont needs internet; offline it falls back to Georgia gracefully
 |---|---|
 | `assets/sky.jpg` / `sky-small.jpg` | The sunset-sky artwork (2560w / 1280w JPEG) |
 | `assets/ship.svg` | "Sailing Ship 2" — Icooon Mono via SVG Repo, public domain |
+| inline symbols | Compass rose (399350), anchor (535132), wave (514289) — SVG Repo, public domain |
 | `vendor/*.js` | GSAP 3.13 + ScrollTrigger + SplitText + DrawSVGPlugin (all free since 3.13) |
-| `js/main.js` | All scroll choreography — pinned beat sections, horizontal pipeline, DrawSVG storm chart, count-ups |
+| `js/main.js` | All scroll choreography — pinned beat sections with blur crossfades, horizontal pipeline + progress bar, DrawSVG storm chart with drifting cloud layers, compass spins, headline line-mask reveals, count-ups |
 
 All tx hashes, block numbers, and the ALL ROUNDS CONSISTENT verdict on the page are
 from the real staging run on Sepolia (`docs/deployment/addresses.md`).

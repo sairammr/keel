@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<!-- fixed painterly grain -->
+<!-- fixed layers (outside the smoother) -->
 <div class="grain" aria-hidden="true"></div>
 
 <nav class="nav">
@@ -28,12 +28,16 @@
   <a class="nav-gh" href="https://github.com/sairammr/keel" target="_blank" rel="noopener">GitHub ↗</a>
 </nav>
 
+<div id="smooth-wrapper">
+<div id="smooth-content">
+
 <!-- ============ HERO ============ -->
 <section class="hero" id="hero">
   <div class="hero-sky" aria-hidden="true">
     <div class="sky-img"></div>
     <div class="sky-tint"></div>
   </div>
+  <svg class="compass-bg" id="compassHero" aria-hidden="true"><use href="#compass"></use></svg>
   <div class="hero-inner">
     <p class="hero-kicker">ETHOnline 2026 · Chainlink CRE · Confidential Workflows</p>
     <h1 class="hero-title" aria-label="KEEL">KEEL</h1>
@@ -50,6 +54,7 @@
 
 <!-- ============ THE LEAK ============ -->
 <section class="panel panel-ink" id="problem">
+  <div class="glow glow-ember" aria-hidden="true"></div>
   <div class="pin-wrap">
     <div class="split">
       <div class="copy">
@@ -78,8 +83,15 @@
   </div>
 </section>
 
+<div class="wavebar" aria-hidden="true">
+  <span class="waveline"></span>
+  <svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg>
+  <span class="waveline"></span>
+</div>
+
 <!-- ============ THE JITTER ============ -->
 <section class="panel panel-dusk" id="idea">
+  <div class="glow glow-gold" aria-hidden="true"></div>
   <div class="pin-wrap">
     <div class="split">
       <div class="copy">
@@ -106,44 +118,50 @@
 
 <!-- ============ THE PROOF (horizontal) ============ -->
 <section class="hwrap" id="pipeline">
+  <svg class="anchor-float a1" aria-hidden="true"><use href="#anchor"></use></svg>
+  <svg class="anchor-float a2" aria-hidden="true"><use href="#anchor"></use></svg>
   <div class="hpin">
+    <p class="kicker hkicker">03 — the proof · drag through the pipeline</p>
     <div class="htrack" id="htrack">
       <article class="hcard">
-        <p class="kicker">03 — the proof · i</p>
+        <p class="kicker">i · commit</p>
         <h3>Commit, <em>before</em> the storm</h3>
         <p><code>keccak256(policyHash ‖ salt)</code> lands on Sepolia at block <b>11,682,878</b> — provably earlier than <code>ChallengeStarted</code>. The policy panel stays blank.</p>
         <a class="tx" href="https://sepolia.etherscan.io/tx/0xa63f24f20941a30f7a8010a544249eb12479f1e958a20f4964e4ece486856205" target="_blank" rel="noopener">commit · 0xa63f24f2… ↗</a>
       </article>
       <article class="hcard">
-        <p class="kicker">03 — the proof · ii</p>
+        <p class="kicker">ii · receipts</p>
         <h3>Every action carries a receipt</h3>
         <p>EIP-712, signed by a key derived <em>inside the enclave</em> from the same salt. Action at nonce <i>n</i>, receipt at <i>n+1</i>, same EOA — visible on Etherscan. The receipt carries no trigger fields.</p>
         <a class="tx" href="https://sepolia.etherscan.io/tx/0x486ccffdc2c2f8b0eddf7473d4c4b9a6b396729a5b3dea784c4d5f397d9034f2" target="_blank" rel="noopener">receipt r1 · 0x486ccffd… ↗</a>
         <a class="tx" href="https://sepolia.etherscan.io/tx/0x8ba5a8f0e97c56635a6362cc39574e297848d9ec78f1cfed0ebe6e2d8205cffc" target="_blank" rel="noopener">receipt r3 · 0x8ba5a8f0… ↗</a>
       </article>
       <article class="hcard">
-        <p class="kicker">03 — the proof · iii</p>
+        <p class="kicker">iii · reveal</p>
         <h3>Reveal, and anyone re-derives everything</h3>
         <p>Paste <code>(policyBytes, salt)</code>. The commitment must match. Then every round's trigger is recomputed from public <code>PriceUpdate</code> logs and each action checked against the committed policy.</p>
         <a class="tx" href="https://sepolia.etherscan.io/tx/0xd874ee6b2c95c28e43b5d3aa9ffbc3431a763987087d5a5cd55a1eac100e8d96" target="_blank" rel="noopener">reveal · 0xd874ee6b… ↗</a>
       </article>
       <article class="hcard hcard-verdict">
-        <p class="kicker">03 — the proof · verdict</p>
+        <p class="kicker">the verdict</p>
         <h3 class="verdict-line">ALL ROUNDS CONSISTENT</h3>
         <p>The independent verifier does not trust the receipts' self-reported HF — it reconstructs pre-action HF from chain logs. A mismatch would surface as <code>RECEIPT&nbsp;HF&nbsp;MISMATCH</code>. It didn't.</p>
         <p class="fine">That is the difference between secrecy and <em>verifiable</em> secrecy.</p>
       </article>
     </div>
+    <div class="hprogress" aria-hidden="true"><i></i></div>
   </div>
 </section>
 
 <!-- ============ THE STORM ============ -->
 <section class="panel panel-storm" id="storm">
   <div class="storm-sky" aria-hidden="true"></div>
+  <div class="cloud cloud-a" aria-hidden="true"></div>
+  <div class="cloud cloud-b" aria-hidden="true"></div>
   <div class="pin-wrap">
     <div class="storm-head">
       <p class="kicker">04 — the storm</p>
-      <h2>A real crash, on a real chain.</h2>
+      <h2 class="reveal-h">A real crash, on a real chain.</h2>
       <p class="fine">Staging run on Sepolia — same crash for both lines. Rounds 3–5 push the undefended position to HF 0.99 / 0.95 / 0.93. Liquidated. Keel deposits at rounds 1 and 3 and never drops below 1.10.</p>
     </div>
     <div class="stormchart">
@@ -168,16 +186,23 @@
   </div>
 </section>
 
+<div class="wavebar" aria-hidden="true">
+  <span class="waveline"></span>
+  <svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg><svg><use href="#wave"></use></svg>
+  <span class="waveline"></span>
+</div>
+
 <!-- ============ VERIFIED / ENCLAVE ============ -->
 <section class="panel panel-ink" id="proof">
+  <div class="glow glow-dusk" aria-hidden="true"></div>
   <div class="wrap">
     <p class="kicker">05 — sealed in the enclave</p>
-    <h2>The decision never leaves the TEE.</h2>
+    <h2 class="reveal-h">The decision never leaves the TEE.</h2>
     <div class="statgrid">
-      <div class="stat"><b data-count="11682878">0</b><span>commit block — before start</span></div>
-      <div class="stat"><b data-count="2">0</b><span>defends, 2 EIP-712 receipts</span></div>
-      <div class="stat"><b data-count="71">0</b><span>tests green across the monorepo</span></div>
-      <div class="stat"><b data-count="5">0</b><span>≤ HTTP calls per tick (uses 2)</span></div>
+      <div class="stat" data-drift="14"><b data-count="11682878">0</b><span>commit block — before start</span></div>
+      <div class="stat" data-drift="34"><b data-count="2">0</b><span>defends, 2 EIP-712 receipts</span></div>
+      <div class="stat" data-drift="54"><b data-count="71">0</b><span>tests green across the monorepo</span></div>
+      <div class="stat" data-drift="74"><b data-count="5">0</b><span>≤ HTTP calls per tick (uses 2)</span></div>
     </div>
     <div class="term">
       <div class="term-bar"><i></i><i></i><i></i><span>cre workflow simulate workflow --target staging-settings</span></div>
@@ -199,19 +224,20 @@ status: <b>DEFENDED</b></pre>
 <!-- ============ RUN IT ============ -->
 <section class="panel panel-run" id="run">
   <div class="run-sky" aria-hidden="true"></div>
+  <svg class="compass-bg compass-run" id="compassRun" aria-hidden="true"><use href="#compass"></use></svg>
   <div class="wrap">
     <p class="kicker">06 — run it yourself</p>
-    <h2>Anyone can check the keel.</h2>
+    <h2 class="reveal-h">Anyone can check the keel.</h2>
     <div class="runcols">
       <div class="runcard">
-        <h4>Verify the live run</h4>
+        <h4><svg class="ic"><use href="#anchor"></use></svg> Verify the live run</h4>
         <pre>git clone https://github.com/sairammr/keel
 bun install
 bun run verify     # → ALL ROUNDS CONSISTENT
 (cd app && bun run dev)   # /verify /hunter /replay</pre>
       </div>
       <div class="runcard">
-        <h4>Simulate the enclave</h4>
+        <h4><svg class="ic"><use href="#compass"></use></svg> Simulate the enclave</h4>
         <pre>cre workflow simulate workflow \
   --target staging-settings \
   --non-interactive --trigger-index 0</pre>
@@ -227,15 +253,27 @@ bun run verify     # → ALL ROUNDS CONSISTENT
   <footer class="foot">
     <svg class="foot-ship" aria-hidden="true"><use href="#ship"></use></svg>
     <p>KEEL — built for ETHOnline 2026 · Chainlink CRE Confidential Workflows.<br>
-    Sky: original artwork. Ship glyph: Icooon Mono via SVG Repo, public domain.</p>
+    Sky: original artwork. Glyphs (ship, compass, anchor, wave): Icooon Mono &amp; friends via SVG Repo, public domain.</p>
   </footer>
 </section>
 
-<!-- ship symbol -->
+</div><!-- /smooth-content -->
+</div><!-- /smooth-wrapper -->
+
+<!-- symbols -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="ship" viewBox="0 0 512 512">
       <path fill="currentColor" d="M401.902,297.035l-22.823,33.602v-57.562l101.117-6.488c-21.492-23.878-16.72-87.176-7.159-106.282 l-93.958,14.906v-13.018l75.155-10.574c-17.103-21.369-19.244-66.272-3.212-94.064l-71.944,15.608V61.64 c4.151-2.362,6.986-6.766,6.986-11.882c0-7.567-6.129-13.704-13.696-13.704c-7.575,0-13.704,6.137-13.704,13.704 c0,5.115,2.836,9.52,6.987,11.882v14.431l-52.536,11.408c-27.784,34.215,4.282,83.401,4.282,83.401l48.254-6.799v13.27 l-58.175,9.235c-25.078,41.806,4.781,90.755,4.781,90.755l53.394-3.416v58.68H256.894l-24.171-35.571h-20.495v-16.67l73.824-4.462 c-18.828-20.911-14.627-76.341-6.276-93.06l-67.548,10.1v-17.259l66.338-9.332c-16.728-20.904-18.82-64.826-3.138-91.998 l-63.2,13.712v-8.964c3.938-2.312,6.603-6.554,6.603-11.432c0-7.37-5.965-13.336-13.32-13.336c-7.354,0-13.312,5.965-13.312,13.336 c0,4.878,2.672,9.12,6.595,11.432v11.874l-58.256,12.633c-27.18,33.471,4.192,81.57,4.192,81.57l54.064-7.6v17.381l-72.721,10.885 c-21.966,36.601,4.176,79.47,4.176,79.47l68.544-4.151v15.87H72.148l-48.344-79.004L0,226.995c0,0,55.495,112.778,112.778,193.342 c22.995,32.336,57.284,50.118,87.731,53.696c11.555,1.356,32.18,1.912,56.107,1.912c55.895,0,129.792-2.974,147.974-5.491 c23.935-3.294,59.074-5.36,83.238-53.696C503.117,386.188,512,297.035,512,297.035H401.902z M141.878,333.955H94.196L83.262,315.83 h58.616V333.955z M198.794,333.955h-43.49V315.83h43.49V333.955z M212.228,333.955V315.83h10.542l12.307,18.125H212.228z M436.362,333.955H399.54l12.315-18.125h24.507V333.955z M449.797,333.955V315.83h41.111c-0.727,5.614-1.56,11.751-2.509,18.125 H449.797z"/>
+    </symbol>
+    <symbol id="compass" viewBox="0 0 100 100">
+      <path fill="currentColor" d="M49.945-.172c-.742-.004-1.149.502-1.263 1.094L45.617 11.26a38.804 38.804 0 0 0-19.94 8.277c-3.183-1.728-6.365-3.464-9.55-5.183c-.59-.318-1.106-.293-1.584.187s-.342 1.187-.072 1.697l5.103 9.4a38.797 38.797 0 0 0-8.32 19.985c-3.48 1.032-6.965 2.055-10.44 3.094c-.64.192-.988.574-.986 1.252c.002.677.597 1.082 1.149 1.252l10.271 3.043a38.804 38.804 0 0 0 8.277 20.043c-1.737 3.202-3.484 6.402-5.213 9.605c-.317.59-.292 1.104.188 1.582s1.187.344 1.697.074l9.453-5.13a38.8 38.8 0 0 0 19.971 8.306c1.032 3.48 2.057 6.966 3.096 10.442c.192.64.574.988 1.252.986c.677-.002 1.082-.597 1.252-1.149l3.043-10.271a38.745 38.745 0 0 0 20.076-8.318l9.492 5.154c.689.35 1.154.412 1.682-.11c.527-.521.458-1.168.12-1.667l-5.167-9.524a38.835 38.835 0 0 0 8.267-20.016l10.327-3.06c.734-.239 1.107-.524 1.11-1.266c.005-.742-.501-1.149-1.093-1.263l-10.373-3.075a38.841 38.841 0 0 0-8.287-19.955l5.129-9.447c.35-.688.412-1.154-.11-1.682c-.604-.525-1.111-.367-1.667-.119l-9.465 5.139a38.737 38.737 0 0 0-20.041-8.303L51.21.94c-.239-.735-.524-1.108-1.266-1.112zm-.002 5.238V44a6 6 0 0 0-2.892.775l-6.244-7.912zm5.25 9.311a35.798 35.798 0 0 1 16.256 6.717l-12.289 6.67zm-10.508.031l-3.943 13.305c-4.066-2.211-8.133-4.412-12.2-6.621a35.815 35.815 0 0 1 16.143-6.684zm-26.48 3.795l19.568 19.531l-.01.03l-7.476 2.216zm44 19.55l-.094-.026l-2.199-7.42l21.82-12.08zm16.67-9.257a35.815 35.815 0 0 1 6.717 16.19l-13.356-3.96zm-57.746.01l6.635 12.223l-13.368 3.962a35.796 35.796 0 0 1 6.733-16.185zm41.883 12.266l31.922 9.171H56a6 6 0 0 0-.791-2.92zm-19.01 9.171L44 50a6 6 0 0 0 .729 2.865l-7.899 6.217l-7.828-2.242l-23.996-6.871zm41.623 5.248a35.795 35.795 0 0 1-6.709 16.243l-6.664-12.28zm-71.232.004l13.355 3.957c-2.227 4.096-4.443 8.193-6.668 12.29a35.809 35.809 0 0 1-6.687-16.247zm38.503.059l6.221 7.79l-2.262 7.897l-6.886 24.053l-.026-38.996c1.057.002 2.153-.274 2.953-.744zm16.811 4.654l12.104 21.865L62.176 62.14zm-31.953 2.297l2.23 7.522l-21.822 12.107zm21.416 9.992l12.318 6.69a35.812 35.812 0 0 1-16.293 6.72zm-18.438.053c1.317 4.454 2.642 8.901 3.96 13.354A35.797 35.797 0 0 1 28.52 78.88z"/>
+    </symbol>
+    <symbol id="anchor" viewBox="0 0 16 16">
+      <path fill="currentColor" d="M11 3C11 4.30622 10.1652 5.41746 9 5.82929V13.917C11.5125 13.4955 13.4955 11.5125 13.917 9H12V7H16V8C16 12.4183 12.4183 16 8 16C3.58172 16 0 12.4183 0 8V7H4V9H2.08296C2.50448 11.5125 4.48749 13.4955 7 13.917V5.82929C5.83481 5.41746 5 4.30622 5 3C5 1.34315 6.34315 0 8 0C9.65685 0 11 1.34315 11 3Z"/>
+    </symbol>
+    <symbol id="wave" viewBox="0 0 32 32">
+      <path fill="currentColor" d="M0 22.848q0 2.496 1.216 4.608t3.328 3.328 4.608 1.216 4.576-1.216 3.328-3.328 1.216-4.608v-13.696q0-1.92 1.344-3.232t3.232-1.344q1.888 0 3.232 1.344t1.344 3.232v20.576q0 0.928 0.672 1.6t1.632 0.672 1.6-0.672 0.672-1.6v-20.576q0-2.496-1.216-4.608t-3.328-3.328-4.608-1.216-4.576 1.216-3.328 3.328-1.216 4.608v13.696q0 1.888-1.344 3.232t-3.232 1.344-3.232-1.344-1.344-3.232v-20.576q0-0.96-0.672-1.6t-1.632-0.672-1.6 0.672-0.672 1.6v20.576z"/>
     </symbol>
   </defs>
 </svg>
