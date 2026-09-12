@@ -1,6 +1,6 @@
 import type { DecideInput, Decision } from "./types";
 import { volTermBp } from "./vol";
-import { jitterBpOf } from "./jitter";
+import { jitterBpOf, tjitterBpOf } from "./jitter";
 import { solve } from "./solver";
 
 function clamp(x: number, lo: number, hi: number): number {
@@ -14,8 +14,11 @@ export function decide(input: DecideInput): Decision {
   const jitter = jitterBpOf(salt, round, policy.jitter_bp);
 
   const armBpN = clamp(policy.base_bp + volTerm + jitter, policy.base_bp, policy.tmax_bp);
+  // Fresh independent upward draw on the restore target: without it the post-action HF
+  // is deterministic in arm+buffer and one observed action reveals targetBp.
+  const tjitter = tjitterBpOf(salt, round, policy.tjitter_bp ?? 0);
   const targetBpN = clamp(
-    armBpN + policy.buffer_bp + volTerm,
+    armBpN + policy.buffer_bp + volTerm + tjitter,
     armBpN + policy.buffer_bp,
     policy.target_cap_bp,
   );

@@ -7,29 +7,34 @@ import {
   receiptDigest,
   volTermBp,
   jitterBpOf,
+  tjitterBpOf,
   type Policy,
 } from "keel-controller";
 import type { ReconstructedRun } from "./reconstruct.ts";
 
-const POLICY_TUPLE = [
+const POLICY_TUPLE_V1 = [
   { type: "uint16" }, { type: "uint32" }, { type: "uint32" }, { type: "uint32" },
   { type: "uint32" }, { type: "uint32" }, { type: "uint32" }, { type: "uint32" },
   { type: "uint32" }, { type: "uint32" }, { type: "uint32" }, { type: "uint32" },
   { type: "uint32" }, { type: "uint32" }, { type: "bytes32" },
 ] as const;
+const POLICY_TUPLE_V2 = [...POLICY_TUPLE_V1, { type: "uint32" }] as const; // + tjitter_bp
 
-/** Inverse of encodePolicyBytes — recover the Policy (+ bound codehash) from revealed bytes. */
+/** Inverse of encodePolicyBytes — recover the Policy (+ bound codehash) from revealed bytes.
+ * Version-aware: v1 → no tjitter_bp (legacy deterministic target), v2 → tjitter_bp appended. */
 export function decodePolicyBytes(policyBytes: Hex): { policy: Policy; controllerCodeHash: Hex } {
-  const v = decodeAbiParameters(POLICY_TUPLE, policyBytes) as unknown as (number | bigint | Hex)[];
+  const words = (policyBytes.length - 2) / 64; // 32-byte words in the blob
+  const tuple = words >= 16 ? POLICY_TUPLE_V2 : POLICY_TUPLE_V1;
+  const v = decodeAbiParameters(tuple, policyBytes) as unknown as (number | bigint | Hex)[];
+  const version = Number(v[0]);
   const n = (i: number) => Number(v[i]);
-  return {
-    policy: {
-      base_bp: n(1), kvol_bp: n(2), volcap_bp: n(3), jitter_bp: n(4), tmax_bp: n(5),
-      emerg_bp: n(6), buffer_bp: n(7), target_cap_bp: n(8), halflife: n(9), cooldown: n(10),
-      max_repay_bp: n(11), max_deposit: n(12), t_est_s: n(13),
-    },
-    controllerCodeHash: v[14] as Hex,
+  const policy: Policy = {
+    base_bp: n(1), kvol_bp: n(2), volcap_bp: n(3), jitter_bp: n(4), tmax_bp: n(5),
+    emerg_bp: n(6), buffer_bp: n(7), target_cap_bp: n(8), halflife: n(9), cooldown: n(10),
+    max_repay_bp: n(11), max_deposit: n(12), t_est_s: n(13),
   };
+  if (Number(version) >= 2) policy.tjitter_bp = n(15);
+  return { policy, controllerCodeHash: v[14] as Hex };
 }
 
 function clamp(x: number, lo: number, hi: number) {
@@ -114,9 +119,10 @@ export async function audit(run: ReconstructedRun, opts: AuditOpts): Promise<Aud
     for (const r of run.rounds) {
       const volTerm = volTermBp(run.prices, r.round, policy);
       const jitter = jitterBpOf(saltBytes, r.round, policy.jitter_bp);
+      const tjitter = tjitterBpOf(saltBytes, r.round, policy.tjitter_bp ?? 0);
       const armBp = BigInt(clamp(policy.base_bp + volTerm + jitter, policy.base_bp, policy.tmax_bp));
       const targetBp = BigInt(
-        clamp(Number(armBp) + policy.buffer_bp + volTerm, Number(armBp) + policy.buffer_bp, policy.target_cap_bp),
+        clamp(Number(armBp) + policy.buffer_bp + volTerm + tjitter, Number(armBp) + policy.buffer_bp, policy.target_cap_bp),
       );
       const emergency = r.hfBpPre < BigInt(policy.emerg_bp);
       const cooled = lastActionRound < 0 || r.round - lastActionRound > policy.cooldown;

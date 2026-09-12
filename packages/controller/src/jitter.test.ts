@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { jitterBpOf } from "./jitter";
+import { jitterBpOf, tjitterBpOf } from "./jitter";
 
 const salt = new Uint8Array(32).fill(7);
 const JMAX = 300;
@@ -25,4 +25,16 @@ test("uniform-ish mean ≈ jmax/2 ± 10%", () => {
   for (let r = 0; r < 1000; r++) sum += jitterBpOf(salt, r, JMAX);
   const mean = sum / 1000;
   expect(Math.abs(mean - JMAX / 2)).toBeLessThan(JMAX * 0.1);
+});
+
+test("tjitter: independent domain — differs from arm jitter for most rounds", () => {
+   
+  let same = 0;
+  for (let r = 0; r < 200; r++) if (tjitterBpOf(salt, r, JMAX) === jitterBpOf(salt, r, JMAX)) same++;
+  expect(same).toBeLessThan(20); // collisions allowed, correlation not
+});
+
+test("tjitter: zero width → 0", () => {
+   
+  expect(tjitterBpOf(salt, 7, 0)).toBe(0);
 });

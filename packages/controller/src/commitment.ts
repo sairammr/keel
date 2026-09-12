@@ -3,7 +3,10 @@ import { privateKeyToAccount } from "viem/accounts";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import type { Policy } from "./types";
 
-const POLICY_ABI = [
+// v1: 14 numeric fields + codehash. v2 appends tjitter_bp (restore-target jitter).
+// Encoding is version-aware so a v1 policy revealed on-chain re-encodes byte-identically
+// and its commitment still verifies after the v2 upgrade.
+const POLICY_ABI_V1 = [
   { type: "uint16" }, // version = 1
   { type: "uint32" }, // base_bp
   { type: "uint32" }, // kvol_bp
@@ -21,12 +24,13 @@ const POLICY_ABI = [
   { type: "bytes32" }, // controllerCodeHash
 ] as const;
 
+const POLICY_ABI_V2 = [...POLICY_ABI_V1, { type: "uint32" }] as const; // + tjitter_bp
+
 export function encodePolicyBytes(
   policy: Policy,
   controllerCodeHash: `0x${string}`,
 ): `0x${string}` {
-  return encodeAbiParameters(POLICY_ABI, [
-    1,
+  const base = [
     policy.base_bp,
     policy.kvol_bp,
     policy.volcap_bp,
@@ -40,8 +44,11 @@ export function encodePolicyBytes(
     policy.max_repay_bp,
     policy.max_deposit,
     policy.t_est_s,
-    controllerCodeHash,
-  ]);
+  ] as const;
+  const tj = policy.tjitter_bp ?? 0;
+  return tj > 0
+    ? encodeAbiParameters(POLICY_ABI_V2, [2, ...base, controllerCodeHash, tj] as const)
+    : encodeAbiParameters(POLICY_ABI_V1, [1, ...base, controllerCodeHash] as const);
 }
 
 export function policyHashOf(policyBytes: `0x${string}`): `0x${string}` {

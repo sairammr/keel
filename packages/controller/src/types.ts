@@ -8,6 +8,7 @@ export interface Policy {
   kvol_bp: number; // vol gain (10000 = 1.0)
   volcap_bp: number; // cap on vol term (200 = +0.02)
   jitter_bp: number; // jitter width, upward only (300 = 0.03)
+  tjitter_bp?: number; // restore-target jitter width, upward only; absent/0 = legacy v1 behavior (target deterministic from arm — leaks targetBp via post-action HF)
   tmax_bp: number; // ceiling trigger (11100)
   emerg_bp: number; // emergency override (10300)
   buffer_bp: number; // restore target = trigger + buffer (500)
