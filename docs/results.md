@@ -68,3 +68,29 @@ vs starter 1.08/1.15    mean WIN  (82.15 vs 81.42)  liq WIN  (0 vs 0)
 vs starter 1.05/1.12    mean lose (82.15 vs 82.22)  liq WIN  (0 vs 0)
 vs do-nothing           mean WIN  (82.15 vs 54.64)  liq WIN  (0 vs 28)
 ```
+
+## Official README scenarios (challenge repo, Sept 2026) — `bun run scripts/eval-official.ts`
+
+Exact price paths from the challenge README "Market scenarios examples", dt=120s steps,
+cron=60s (prod schedule), engine = ContractMirror. Scored survive/40 + debtTime/20 +
+capEff/15 + discipline/10 (confidentiality/15 is a judge assessment, not simulated).
+
+| Strategy | mean | worst | liq | capital (×100 vUSD) |
+|---|---|---|---|---|
+| **Keel committed prod policy** (DEFAULT + tjitter 300, on-chain commit `0xc6d21b2d…`) | **81.48** | 79.53 | 0 | **1,146,950** |
+| Tuned grid winner (base 10500/j200/buf700) | 81.38 | **79.55** | 0 | 1,200,650 |
+| Starter 1.08/1.15 | 81.39 | 79.46 | 0 | 1,197,800 |
+| Do-nothing | 42.08 | 40.79 | **5/5** | 0 |
+
+Per-scenario (committed policy): gradual 80.23 · crash 79.53 · wick 83.56 · two-stage 80.28 ·
+safe-vol 83.78. All five survive with 1–2 actions each; loan continuity is a full 20/20 in every
+scenario (defense is deposit-led, debt never reduced below start where avoidable).
+
+Notes:
+- The committed policy **beats the tuned grid winner on the official literal paths** (tuner was
+  fit to the 40-scenario train family) and uses the least capital of any surviving strategy —
+  the second tie-breaker. No recommit needed.
+- Robustness: identical scores for dt ∈ {60,120,300}; salt sweep (3 salts) moves mean only
+  81.28–81.48, always 0 liquidations.
+- Even the "safe volatility" official path dips HF below 1.0 (price 1750 ⇒ HF 0.975), so
+  do-nothing liquidates in all 5 scenarios — every path requires at least one defense.
