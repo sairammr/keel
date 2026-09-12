@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS fallback runner for the scenario window (Plan C, scripts/fallback-runner.sh).
+     Install:  cp scripts/keel-runner.launchd.plist ~/Library/LaunchAgents/com.keel.runner.plist
+               launchctl load ~/Library/LaunchAgents/com.keel.runner.plist
+     Stop:     launchctl unload ~/Library/LaunchAgents/com.keel.runner.plist
+     Keep the lid open or run `caffeinate -s` — launchd does not wake a sleeping laptop. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.keel.runner</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>cd /Users/sairammr/Documents/GitHub/keel &amp;&amp; set -a &amp;&amp; source .env &amp;&amp; set +a &amp;&amp; export PATH="$HOME/.cre/bin:$PATH" &amp;&amp; exec ./scripts/fallback-runner.sh production-settings 45</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/keel-runner.log</string>
+  <key>StandardErrorPath</key><string>/tmp/keel-runner.log</string>
+</dict>
+</plist>

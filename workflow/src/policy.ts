@@ -36,14 +36,20 @@ export function parsePackedPolicy(json: string): Policy {
   }
   if (typeof obj !== "object" || obj === null) throw new Error("keel_policy must be a JSON object");
 
-  const known = new Set<string>(POLICY_FIELDS);
+  const known = new Set<string>([...POLICY_FIELDS, "tjitter_bp"]);
   for (const k of Object.keys(obj)) if (!known.has(k)) throw new Error(`keel_policy has unknown field: ${k}`);
 
-  const out = {} as Record<(typeof POLICY_FIELDS)[number], number>;
+  const out = {} as Record<string, number>;
   for (const f of POLICY_FIELDS) {
     const v = obj[f];
     if (typeof v !== "number" || !Number.isInteger(v)) throw new Error(`keel_policy.${f} must be an integer`);
     out[f] = v;
+  }
+  // tjitter_bp optional (v2 restore-target jitter); absent/0 = legacy v1 encoding.
+  const tj = obj["tjitter_bp"];
+  if (tj !== undefined) {
+    if (typeof tj !== "number" || !Number.isInteger(tj)) throw new Error("keel_policy.tjitter_bp must be an integer");
+    out["tjitter_bp"] = tj;
   }
   return out as unknown as Policy;
 }

@@ -34,7 +34,7 @@ export function demoSaltBytes(): Uint8Array {
 // Reproducible controller source-tree hash (`bun run codehash`). Kept in sync with
 // workflow/config.*.json by `bun run codehash --check` (which also checks this constant).
 export const CONTROLLER_CODE_HASH =
-  "0x7ed604edb03747f3c1a66bb765f9bbe7638d261ad293d77b42b5b658516acc88" as `0x${string}`;
+  "0xd0897455e159f8208dcacdb8cc8435ebb8345f6768e9aa54f5c6b3b7465315cd" as `0x${string}`;
 
 // HF = price / 1794.87 at initial C/D. The whole game is a $205 window.
 export const PRICE_DIVISOR = 1794.87;

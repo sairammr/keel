@@ -30,8 +30,8 @@ Plan of record: `PLAN.md`. App plan: `APP-BUILD-PLAN.md`. Deploy record: `docs/d
 | Honest attack model | ✅ removed the `max_deposit:6` hobble; funds both reserves, counts repay+deposit legs, adaptive stop-hunt bounded by the liq floor |
 | Ops scripts | ✅ `scripts/fallback-runner.sh`, `scripts/liveness.sh` |
 | Confidential Workflows access form | ✅ submitted (waitlist), org `org_0NhyfJ57VzhSh1D8` |
-| **DON deployment** | ⏳ gated on early-access email; `cre whoami` → Deploy Access **Not enabled** |
-| Production run on the official contract | ⚠️ not done (needs `keel-prod` funded + an uncapped RPC) |
+| **DON deployment** | ⏳ gated on early-access email; `cre whoami` → Deploy Access **Not enabled**. Google-form early-access request re-raised 2026-09-13 with join/commit tx evidence. Discord staff signal: queue may not clear before deadline → fallback runner is the plan of record |
+| Production join + commit on the official contract | ✅ 2026-09-13 — `keel-prod` joined (participant #8) + committed before start + max approvals; txs in `docs/deployment/wallets.md`. Fresh salt + policy (DEFAULT + `tjitter_bp:300`) in `.env.deploy`/`.env`. Prod simulate tick (incl. `--broadcast`) → IDLE ✅. `scripts/keel-runner.launchd.plist` ready for the scenario window |
 | Phase 5/6 (levers, hardening, docs, CI) | ⚠️ not done — see §5 |
 
 Last full sweep: **all green** — controller 23 · verifier 4 · hunter 8 · scenario 15 · app build OK · `bun run verify` CONSISTENT.
