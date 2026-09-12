@@ -15,10 +15,10 @@ export function HeatStrip({
   const max = Math.max(...post.heat, 1e-9);
   const col =
     tone === "keel"
-      ? "46,230,166"
+      ? "13,19,85" // klein indigo
       : tone === "danger"
-        ? "255,92,77"
-        : "124,108,255";
+        ? "168,50,31" // burnt red
+        : "42,42,242"; // electric blue
   const n = post.grid.length;
   const loFrac = (post.hpdLoBp - post.grid[0]!) / (post.grid[n - 1]! - post.grid[0]!);
   const hiFrac = (post.hpdHiBp - post.grid[0]!) / (post.grid[n - 1]! - post.grid[0]!);
@@ -30,7 +30,7 @@ export function HeatStrip({
 
   return (
     <div className="w-full">
-      <div className="relative h-9 w-full overflow-hidden rounded-[3px] border hairline bg-[color:var(--color-panel2)]">
+      <div className="relative h-9 w-full overflow-hidden border hairline bg-[color:var(--color-panel2)]">
         <div className="absolute inset-0 flex">
           {post.heat.map((h, i) => (
             <div

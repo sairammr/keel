@@ -28,21 +28,23 @@ export function HunterView({
   return (
     <div className="flex flex-col gap-6">
       {/* source toggle */}
-      <div className="panel p-3 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-4">
         <span className="eyebrow">inference source</span>
-        <div className="flex">
-          <Toggle active={source === "engine"} onClick={() => setSource("engine")}>
-            engine suite ({markets} markets)
-          </Toggle>
-          <Toggle
-            active={source === "chain"}
+        <div className="seg">
+          <button className={source === "engine" ? "on" : ""} onClick={() => setSource("engine")}>
+            ENGINE SUITE ({markets})
+          </button>
+          <button
+            className={source === "chain" ? "on" : ""}
             disabled={!chain}
             onClick={() => chain && setSource("chain")}
           >
-            {chain ? `chain · ${chain.participant.slice(0, 6)}…${chain.participant.slice(-4)}` : "chain (unavailable)"}
-          </Toggle>
+            {chain
+              ? `CHAIN · ${chain.participant.slice(0, 6)}…${chain.participant.slice(-4)}`
+              : "CHAIN (UNAVAILABLE)"}
+          </button>
         </div>
-        <span className="text-[12px] text-[color:var(--color-muted)]">
+        <span className="text-[12.5px] text-[color:var(--color-muted)]">
           {onChain
             ? "Keel's M1/M2 computed from its real on-chain (HF, acted?) log stream, reconstructed by packages/verifier."
             : `Aggregated across ${markets} engine markets (real controller, ContractMirror).`}
@@ -53,7 +55,11 @@ export function HunterView({
         <IntelPanel
           tone="danger"
           title="STARTER"
-          sub={onChain ? "fixed threshold · engine baseline (no starter on-chain)" : "fixed threshold · no secret"}
+          sub={
+            onChain
+              ? "fixed threshold · engine baseline (no starter on-chain)"
+              : "fixed threshold · no secret"
+          }
           post={intel.starter}
           jitterBp={jitterBp}
           markets={markets}
@@ -71,40 +77,16 @@ export function HunterView({
       <AttackConsole attack={attack} />
 
       <div className="eyebrow text-center">
-        {onChain ? "on Keel's real logs" : `across ${markets} markets`} the starter&apos;s 90% band is{" "}
+        {onChain ? "on Keel's real logs" : `across ${markets} markets`} the starter&apos;s
+        next trigger is predictable to{" "}
         <span className="text-[color:var(--color-danger)]">{intel.starter.widthBp} bp</span>{" "}
-        — Keel&apos;s is{" "}
-        <span className="text-[color:var(--color-keel)]">{keelPost.widthBp} bp</span>,
-        floored by the {jitterBp} bp jitter it can never see under
+        — Keel&apos;s to{" "}
+        <span className="text-[color:var(--color-keel)]">
+          {keelPost.bWidthBp + jitterBp} bp
+        </span>{" "}
+        at best, floored by the {jitterBp} bp fresh jitter it can never see under
       </div>
     </div>
-  );
-}
-
-function Toggle({
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="mono text-[12px] px-3 py-1.5 border hairline disabled:opacity-40"
-      style={{
-        borderColor: active ? "var(--color-keel)" : undefined,
-        color: active ? "var(--color-keel)" : "var(--color-muted)",
-        background: active ? "var(--color-panel2)" : "transparent",
-      }}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -124,21 +106,23 @@ function IntelPanel({
   markets: number;
 }) {
   const color = tone === "keel" ? "var(--color-keel)" : "var(--color-danger)";
-  // The Hunter "pins" an agent when it resolves the trigger tighter than the jitter floor.
-  const pinned = post.widthBp < jitterBp;
+  // "Pinned" = the Hunter can predict the NEXT trigger tighter than the jitter floor.
+  // Starter: M1 width is the whole story (fixed threshold). Keel: even an exactly-known
+  // base leaves the next draw uniform in [base, base+jmax) — M1's collapse is a
+  // misspecified model, the honest band is bWidth + jmax.
+  const nextBandBp = tone === "keel" ? post.bWidthBp + jitterBp : post.widthBp;
+  const pinned = nextBandBp < jitterBp;
   return (
     <div className="panel p-4 flex flex-col gap-3">
-      <div className="flex items-baseline justify-between">
-        <div>
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="flex items-baseline gap-2">
           <span className="mono text-[15px] font-semibold" style={{ color }}>
             {title}
           </span>
-          <span className="eyebrow ml-2">{sub}</span>
+          <span className="eyebrow">{sub}</span>
         </div>
-        <span
-          className="mono text-[11px] px-2 py-0.5 border"
-          style={{ borderColor: color, color }}
-        >
+        <span className={`chip ${pinned ? "bad" : "keel"}`}>
+          <span className="d" />
           {pinned ? "PINNED" : "SECRET HELD"}
         </span>
       </div>
@@ -150,13 +134,16 @@ function IntelPanel({
         <HeatStrip post={post} tone={tone} />
       </div>
 
-      <div className="grid grid-cols-3 gap-px bg-[color:var(--color-line)] border hairline">
+      <div
+        className="grid grid-cols-3 gap-px border"
+        style={{ background: "var(--color-line2)", borderColor: "var(--color-line2)" }}
+      >
         {[
-          ["M1 width", `${post.widthBp} bp`],
+          ["next-trigger band", `${nextBandBp} bp`],
           ["M2 · b width", `${post.bWidthBp} bp`],
           ["hunt price", `$${post.huntPriceUsd}`],
         ].map(([k, v], idx) => (
-          <div key={k} className="bg-[color:var(--color-panel)] px-2 py-2 text-center">
+          <div key={k} className="bg-[color:var(--color-panel2)] px-2 py-2 text-center">
             <div className="eyebrow text-[9px]">{k}</div>
             <div
               className="mono text-[15px] mt-0.5"
@@ -168,10 +155,21 @@ function IntelPanel({
         ))}
       </div>
       <p className="mono text-[11px] text-[color:var(--color-muted)] leading-relaxed">
-        posterior width: <span style={{ color }}>{post.widthBp} bp</span>
-        {tone === "keel"
-          ? ` — bounded below by the ${jitterBp} bp jitter (M2 b-width ${post.bWidthBp} bp). The band cannot close below it, no matter how many observations.`
-          : " — collapses toward a point. Watch it act a few times and the number is yours."}
+        {tone === "keel" ? (
+          <>
+            next trigger is predictable to{" "}
+            <span style={{ color }}>{nextBandBp} bp</span> at best — even with the base
+            narrowed to {post.bWidthBp} bp (M2), the next draw is fresh and uniform over
+            the {jitterBp} bp jitter. M1&apos;s {post.widthBp} bp collapse is a
+            misspecified fixed-threshold model, not knowledge.
+          </>
+        ) : (
+          <>
+            trigger located to <span style={{ color }}>{post.widthBp} bp</span> — a fixed
+            threshold collapses toward a point. Watch it act a few times and the number
+            is yours.
+          </>
+        )}
       </p>
     </div>
   );
@@ -220,7 +218,7 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="eyebrow mb-1">the attack · live controller</div>
-          <h2 className="text-[17px] font-semibold">
+          <h2 className="text-[17px] font-bold tracking-[-0.01em]">
             tapping price to ${attack.huntPriceUsd} · milking the reserve
           </h2>
         </div>
@@ -230,26 +228,25 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
               if (step >= N) setStep(1);
               setPlaying((p) => !p);
             }}
-            className="mono text-[12px] px-4 py-2 bg-[color:var(--color-hunt)] text-white font-semibold hover:opacity-90"
+            className="btn sm"
+            style={{ background: "var(--color-hunt)", borderColor: "var(--color-hunt)" }}
           >
-            {playing ? "❚❚ pause" : step >= N ? "▶ replay" : "▶ attack"}
+            {playing ? "PAUSE" : step >= N ? "REPLAY" : "ATTACK"}{" "}
+            {!playing && <span className="arw">→</span>}
           </button>
           <button
             onClick={() => {
               setPlaying(false);
               setStep(N);
             }}
-            className="mono text-[12px] px-3 py-2 border hairline hover:border-[color:var(--color-line2)]"
+            className="btn ghost sm"
           >
-            skip
+            SKIP
           </button>
           <button
             onClick={() => setX1000((v) => !v)}
-            className={`mono text-[12px] px-3 py-2 border ${
-              x1000
-                ? "border-[color:var(--color-warn)] text-[color:var(--color-warn)]"
-                : "hairline text-[color:var(--color-muted)]"
-            }`}
+            className={`chip ${x1000 ? "warn" : ""}`}
+            style={{ cursor: "pointer" }}
             title="scale $ figures ×1000 — the bounty framing"
           >
             ×1000
@@ -270,32 +267,34 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
       <div className="overflow-x-auto">
         <table className="w-full mono text-[12px]">
           <thead>
-            <tr className="eyebrow text-left border-b hairline">
-              <th className="py-1.5 pr-3">tap</th>
-              <th className="py-1.5 pr-3">price</th>
-              <th className="py-1.5 pr-3">HF</th>
-              <th className="py-1.5 pr-3">forced?</th>
-              <th className="py-1.5 pr-3">spend</th>
-              <th className="py-1.5 pr-3 text-right">reserve after</th>
+            <tr className="eyebrow text-left" style={{ background: "var(--color-wash)" }}>
+              <th className="py-2 px-3">tap</th>
+              <th className="py-2 px-3">price</th>
+              <th className="py-2 px-3">HF</th>
+              <th className="py-2 px-3">forced?</th>
+              <th className="py-2 px-3">spend</th>
+              <th className="py-2 px-3 text-right">reserve after</th>
             </tr>
           </thead>
           <tbody>
             {shown.map((t, k) => (
               <tr key={k} className="border-b hairline last:border-0">
-                <td className="py-1.5 pr-3">{String(k + 1).padStart(2, "0")}</td>
-                <td className="py-1.5 pr-3">${t.priceUsd.toFixed(0)}</td>
-                <td className="py-1.5 pr-3">{(t.hfBp / 10000).toFixed(3)}</td>
-                <td className="py-1.5 pr-3">
+                <td className="py-1.5 px-3">{String(k + 1).padStart(2, "0")}</td>
+                <td className="py-1.5 px-3">${t.priceUsd.toFixed(0)}</td>
+                <td className="py-1.5 px-3">{(t.hfBp / 10000).toFixed(3)}</td>
+                <td className="py-1.5 px-3">
                   {t.acted ? (
-                    <span className="text-[color:var(--color-hunt)]">forced</span>
+                    <span className="text-[color:var(--color-hunt)] font-medium">forced</span>
                   ) : (
-                    <span className="text-[color:var(--color-keel)]">shrugged</span>
+                    <span className="text-[color:var(--color-ok)]">shrugged</span>
                   )}
                 </td>
-                <td className="py-1.5 pr-3">
-                  {t.acted ? `${t.amountVeth.toFixed(2)} ${t.kind === "repay" ? "vUSD" : "vETH"}` : "—"}
+                <td className="py-1.5 px-3">
+                  {t.acted
+                    ? `${t.amountVeth.toFixed(2)} ${t.kind === "repay" ? "vUSD" : "vETH"}`
+                    : "—"}
                 </td>
-                <td className="py-1.5 pr-3 text-right">{t.reserveAfter.toFixed(2)}</td>
+                <td className="py-1.5 px-3 text-right">{t.reserveAfter.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -307,7 +306,8 @@ function AttackConsole({ attack }: { attack: AttackResult }) {
         force Keel the attacker must crash price to ${attack.deepestPushUsd} (its M2 floor),
         and Keel&apos;s decisive restore de-levers: it burns debt-time score instead of
         silently bleeding a reserve, and each de-lever makes the next push cost more. ×1000:
-        {" "}{money(attack.capitalBurnedUsd)} capital + {money(attack.debtForfeitedUsd)} debt-time
+        {" "}
+        {money(attack.capitalBurnedUsd)} capital + {money(attack.debtForfeitedUsd)} debt-time
         to move it.
       </p>
     </section>

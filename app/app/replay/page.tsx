@@ -31,17 +31,19 @@ export default async function ReplayPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="viewin flex flex-col gap-6">
       <header>
-        <div className="eyebrow mb-2">01 / replay</div>
-        <h1 className="text-[28px] font-semibold tracking-tight">Split-screen replay</h1>
-        <p className="mt-2 max-w-[720px] text-[14px] leading-relaxed text-[color:var(--color-muted)]">
-          One market, two defenders. Keel runs the sealed policy; the starter runs a
-          fixed 1.08 / 1.15 threshold. Both are driven by the same on-chain-exact
-          ContractMirror through the real controller — or switch to Keel&apos;s{" "}
-          <span className="text-[color:var(--color-keel)]">recorded Sepolia run</span> with
-          every action linked to Etherscan.
+        <div className="eyebrow mb-3">[01] replay</div>
+        <h1 className="display text-[clamp(30px,4vw,46px)]">
+          One market, <span className="it">two defenders.</span>
+        </h1>
+        <p className="lead mt-4 text-[14.5px]">
+          Keel runs the sealed policy; the starter runs a fixed 1.08 / 1.15 threshold.
+          Both are driven by the same on-chain-exact ContractMirror through the real
+          controller — or switch to Keel&apos;s recorded Sepolia run with every action
+          linked to Etherscan.
         </p>
+        <div className="rule" />
       </header>
       <ReplayTabs engine={data} chain={chain} />
     </div>

@@ -15,19 +15,21 @@ export default async function HunterPage() {
   const chain = await chainIntel();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="viewin flex flex-col gap-6">
       <header>
-        <div className="eyebrow mb-2">02 / hunter</div>
-        <h1 className="text-[28px] font-semibold tracking-tight">The adversary</h1>
-        <p className="mt-2 max-w-[780px] text-[14px] leading-relaxed text-[color:var(--color-muted)]">
+        <div className="eyebrow mb-3">[02] hunter</div>
+        <h1 className="display text-[clamp(30px,4vw,46px)]">
+          The <span className="it">adversary.</span>
+        </h1>
+        <p className="lead mt-4 text-[14.5px]">
           The Hunter never sees the policy. From public{" "}
           <span className="mono">(HF, acted?)</span> observations it runs the real M1
           (fixed-threshold) and M2 (threshold + jitter) posteriors — over{" "}
-          {ALL_SCENARIOS.length} engine markets, or over Keel&apos;s{" "}
-          <span className="text-[color:var(--color-keel)]">real Sepolia logs</span>. The
-          starter&apos;s number collapses to a point; Keel&apos;s stays open by at least its
-          jitter, and forcing it means crashing price to the floor.
+          {ALL_SCENARIOS.length} engine markets, or over Keel&apos;s real Sepolia logs.
+          The starter&apos;s number collapses to a point; Keel&apos;s stays open by at
+          least its jitter, and forcing it means crashing price to the floor.
         </p>
+        <div className="rule" />
       </header>
       <HunterView
         intel={intel}

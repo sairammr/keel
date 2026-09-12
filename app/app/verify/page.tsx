@@ -43,17 +43,21 @@ export default async function VerifyPage({
         : "var(--color-danger)";
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="viewin flex flex-col gap-6">
       <header>
-        <div className="eyebrow mb-2">03 / verify</div>
-        <h1 className="text-[28px] font-semibold tracking-tight">Commit ⇄ receipts ⇄ reveal</h1>
-        <p className="mt-2 max-w-[760px] text-[14px] leading-relaxed text-[color:var(--color-muted)]">
+        <div className="eyebrow mb-3">[03] verify</div>
+        <h1 className="display text-[clamp(30px,4vw,46px)]">
+          Commit. Receipts. <span className="it">Reveal.</span>
+        </h1>
+        <p className="lead mt-4 text-[14.5px]">
           Every value below is reconstructed from Sepolia events by{" "}
           <span className="mono">packages/verifier</span> — the commitment is read from{" "}
-          <span className="mono">PolicyCommit</span>, each receipt&apos;s signer is recovered from the{" "}
-          <span className="mono">post()</span> tx calldata, the EIP-712 digest is recomputed, and every
-          round&apos;s action is re-checked against the revealed policy. No engine, no placeholder data.
+          <span className="mono">PolicyCommit</span>, each receipt&apos;s signer is
+          recovered from the <span className="mono">post()</span> tx calldata, the
+          EIP-712 digest is recomputed, and every round&apos;s action is re-checked
+          against the revealed policy. No engine, no placeholder data.
         </p>
+        <div className="rule" />
       </header>
 
       {/* live commit + receipt count (client read) */}
@@ -135,8 +139,8 @@ export default async function VerifyPage({
             <div className="overflow-x-auto">
               <table className="w-full mono text-[12px]">
                 <thead>
-                  <tr className="eyebrow text-left border-b hairline">
-                    <th className="py-2 pr-3">round</th>
+                  <tr className="eyebrow text-left" style={{ background: "var(--color-wash)" }}>
+                    <th className="py-2 px-3">round</th>
                     <th className="py-2 pr-3">price</th>
                     <th className="py-2 pr-3">HF</th>
                     <th className="py-2 pr-3">action</th>
@@ -191,8 +195,8 @@ export default async function VerifyPage({
               <div className="overflow-x-auto">
                 <table className="w-full mono text-[12px]">
                   <thead>
-                    <tr className="eyebrow text-left border-b hairline">
-                      <th className="py-2 pr-3">rnd</th>
+                    <tr className="eyebrow text-left" style={{ background: "var(--color-wash)" }}>
+                      <th className="py-2 px-3">rnd</th>
                       <th className="py-2 pr-3">price</th>
                       <th className="py-2 pr-3">HF</th>
                       <th className="py-2 pr-3">arm (trigger)</th>

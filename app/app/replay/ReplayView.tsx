@@ -55,20 +55,15 @@ export function ReplayView({ data }: { data: ReplayData[] }) {
   const idx = Math.min(step, n) - 1;
   const kTick = scen.keel.ticks[Math.max(0, idx)]!;
 
-  const restart = () => {
-    setStep(1);
-    setPlaying(true);
-  };
-
   return (
     <div className="flex flex-col gap-5">
       <div className="panel p-4 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <span className="eyebrow">scenario</span>
           <select
             value={scenId}
             onChange={(e) => setScenId(e.target.value)}
-            className="mono text-[13px] bg-[color:var(--color-panel2)] border hairline px-3 py-1.5 text-[color:var(--color-ink)] outline-none focus:border-[color:var(--color-line2)]"
+            className="inp"
           >
             {data.map((d) => (
               <option key={d.id} value={d.id}>
@@ -84,34 +79,37 @@ export function ReplayView({ data }: { data: ReplayData[] }) {
               if (step >= n) setStep(1);
               setPlaying((p) => !p);
             }}
-            className="mono text-[12px] px-3 py-1.5 bg-[color:var(--color-keel)] text-[color:var(--color-bg)] font-semibold hover:opacity-90"
+            className="btn blue sm"
           >
-            {playing ? "❚❚ pause" : "▶ play"}
-          </button>
-          <button
-            onClick={restart}
-            className="mono text-[12px] px-3 py-1.5 border hairline hover:border-[color:var(--color-line2)]"
-          >
-            ⟲ restart
+            {playing ? "PAUSE" : "PLAY"} {!playing && <span className="arw">→</span>}
           </button>
           <button
             onClick={() => {
-              setPlaying(false);
-              setStep((s) => Math.max(1, s - 1));
+              setStep(1);
+              setPlaying(true);
             }}
-            className="mono text-[12px] px-2.5 py-1.5 border hairline hover:border-[color:var(--color-line2)]"
+            className="btn ghost sm"
           >
-            ◀
+            RESTART
           </button>
-          <button
-            onClick={() => {
-              setPlaying(false);
-              setStep((s) => Math.min(n, s + 1));
-            }}
-            className="mono text-[12px] px-2.5 py-1.5 border hairline hover:border-[color:var(--color-line2)]"
-          >
-            ▶
-          </button>
+          <div className="seg">
+            <button
+              onClick={() => {
+                setPlaying(false);
+                setStep((s) => Math.max(1, s - 1));
+              }}
+            >
+              −
+            </button>
+            <button
+              onClick={() => {
+                setPlaying(false);
+                setStep((s) => Math.min(n, s + 1));
+              }}
+            >
+              +
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 flex-1 min-w-[200px]">
@@ -124,7 +122,7 @@ export function ReplayView({ data }: { data: ReplayData[] }) {
               setPlaying(false);
               setStep(Number(e.target.value));
             }}
-            className="flex-1 accent-[color:var(--color-keel)]"
+            className="flex-1"
           />
           <span className="mono text-[12px] text-[color:var(--color-muted)] w-20 text-right">
             lvl {String(Math.min(step, n)).padStart(2, "0")}/{n}
@@ -132,7 +130,9 @@ export function ReplayView({ data }: { data: ReplayData[] }) {
         </div>
 
         <div className="mono text-[12px] text-[color:var(--color-muted)]">
-          <span className="text-[color:var(--color-keel)]">${kTick.priceUsd.toFixed(0)}</span>
+          <span className="text-[color:var(--color-keel)] font-medium">
+            ${kTick.priceUsd.toFixed(0)}
+          </span>
           <span className="text-[color:var(--color-faint)]"> · HF </span>
           {(kTick.hfBpAfter / 10000).toFixed(3)}
         </div>
@@ -162,7 +162,7 @@ export function ReplayView({ data }: { data: ReplayData[] }) {
       <div className="eyebrow text-center">
         dashed line = the trigger the Hunter is chasing · strip = its real posterior over
         this market · full cross-market campaign on the{" "}
-        <a href="/hunter" className="text-[color:var(--color-keel)] link-underline">
+        <a href="/hunter" className="link-underline">
           Hunter page
         </a>
       </div>
@@ -189,20 +189,15 @@ function AgentPanel({
   const s = run.score;
   return (
     <div className="panel p-4 flex flex-col gap-3">
-      <div className="flex items-baseline justify-between">
-        <div>
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="flex items-baseline gap-2">
           <span className="mono text-[15px] font-semibold" style={{ color }}>
             {title}
           </span>
-          <span className="eyebrow ml-2">{subtitle}</span>
+          <span className="eyebrow">{subtitle}</span>
         </div>
-        <span
-          className="mono text-[11px] px-2 py-0.5 border"
-          style={{
-            borderColor: run.liquidated ? "var(--color-danger)" : "var(--color-line)",
-            color: run.liquidated ? "var(--color-danger)" : "var(--color-muted)",
-          }}
-        >
+        <span className={`chip ${run.liquidated ? "bad" : "ok"}`}>
+          <span className="d" />
           {run.liquidated ? "LIQUIDATED" : "SURVIVED"}
         </span>
       </div>
@@ -217,7 +212,10 @@ function AgentPanel({
         <HeatStrip post={post} tone={tone} />
       </div>
 
-      <div className="grid grid-cols-5 gap-px bg-[color:var(--color-line)] border hairline mt-1">
+      <div
+        className="grid grid-cols-5 gap-px border"
+        style={{ background: "var(--color-line2)", borderColor: "var(--color-line2)" }}
+      >
         {[
           ["survive", s.survive.toFixed(0), "/40"],
           ["debtTime", s.debtTime.toFixed(1), "/20"],
@@ -225,7 +223,7 @@ function AgentPanel({
           ["discip", s.discipline.toFixed(1), "/10"],
           ["total", s.total.toFixed(1), "/85"],
         ].map(([k, v, max], i) => (
-          <div key={k} className="bg-[color:var(--color-panel)] px-2 py-2 text-center">
+          <div key={k} className="bg-[color:var(--color-panel2)] px-2 py-2 text-center">
             <div className="eyebrow text-[9px]">{k}</div>
             <div
               className="mono text-[15px] mt-0.5"

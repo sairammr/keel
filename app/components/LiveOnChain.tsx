@@ -48,11 +48,9 @@ export default function LiveOnChain() {
     <section className="panel p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="eyebrow">live on-chain · read from Sepolia staging</div>
-        <span
-          className="mono text-[11px] px-2 py-0.5 border"
-          style={{ borderColor: committed ? "var(--color-keel)" : "var(--color-line)", color: committed ? "var(--color-keel)" : "var(--color-muted)" }}
-        >
-          {err ? "RPC ERROR" : live ? (committed ? "ON-CHAIN ✓" : "NO COMMIT") : "reading…"}
+        <span className={`chip ${err ? "bad" : committed ? "ok" : ""}`}>
+          <span className="d" />
+          {err ? "RPC ERROR" : live ? (committed ? "ON-CHAIN" : "NO COMMIT") : "READING…"}
         </span>
       </div>
 

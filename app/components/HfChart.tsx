@@ -1,6 +1,6 @@
 import type { Tick } from "@/lib/engine";
 
-// Hand-rolled SVG HF-over-time chart. No chart lib. Dark terminal styling.
+// Hand-rolled SVG HF-over-time chart. No chart lib. Flat editorial styling.
 // y = Health Factor (1.00–1.16 window). Shades the $205 window, marks the liquidation
 // line, draws the realized-HF line + the (secret) arm trigger line + action dots.
 export function HfChart({
