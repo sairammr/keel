@@ -5,7 +5,7 @@
 # to a DON execution — it just is not scheduled by the DON. Disclose this in the README.
 #
 # Usage:
-#   ./scripts/fallback-runner.sh [target] [interval_s]
+#   ./scripts/fallback-runner.sh [target] [interval_s] [env_file]
 #   target      cre settings target     (default: production-settings)
 #   interval_s  sleep between ticks      (default: 45; the prod cron is 60s)
 #
@@ -23,24 +23,44 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 command -v cre >/dev/null 2>&1 || { echo "FATAL: cre CLI not on PATH"; exit 1; }
 
-log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
+# --- on-camera formatting (colors only when stdout is a TTY) ------------------
+if [ -t 1 ]; then
+  B=$'\033[1m'; D=$'\033[2m'; BL=$'\033[38;5;69m'; GR=$'\033[38;5;42m'
+  RD=$'\033[38;5;203m'; GY=$'\033[38;5;245m'; R=$'\033[0m'
+else
+  B=""; D=""; BL=""; GR=""; RD=""; GY=""; R=""
+fi
+W=76
+log() { echo "${GY}[$(date -u +%H:%M:%SZ)]${R} $*"; }
 
-log "fallback-runner start · target=$TARGET · interval=${INTERVAL}s · cwd=$ROOT"
+echo ""
+echo "${BL}╔$(printf '═%.0s' $(seq 1 $W))╗${R}"
+printf "${BL}║${R}%*s${B}%s${R}%*s${BL}║${R}\n" 24 "" " KEEL · CONFIDENTIAL WORKFLOW " 23 ""
+printf "${BL}║${R}%*s${GY}%s${R}%*s${BL}║${R}\n" 14 "" " same handlerInTee code path as a DON execution " 14 ""
+echo "${BL}╚$(printf '═%.0s' $(seq 1 $W))╝${R}"
+echo "  ${GY}target${R}    $TARGET"
+echo "  ${GY}interval${R}  ${INTERVAL}s"
+echo "  ${GY}secrets${R}   $ENV_FILE (never printed)"
+echo ""
 cd "$ROOT"
 
 # ponytail: plain forever-loop, not a supervisor. systemd (below) handles restart/reboot;
 # this just keeps ticking and never exits on a single failed simulate.
+TICK=0
 while true; do
+  TICK=$((TICK + 1))
+  echo "${BL}── tick #${TICK} ────────────────────────────────────────────────────────────${R}"
   if cre workflow simulate workflow \
         --target "$TARGET" \
         --env "$ENV_FILE" \
         --non-interactive \
         --trigger-index 0 \
         --broadcast; then
-    log "tick ok"
+    log "${GR}${B}✓ tick ok${R} — next in ${INTERVAL}s"
   else
-    log "tick FAILED (exit $?) — continuing; next tick in ${INTERVAL}s"
+    log "${RD}${B}✗ tick FAILED${R} (exit $?) — continuing; next in ${INTERVAL}s"
   fi
+  echo ""
   sleep "$INTERVAL"
 done
 

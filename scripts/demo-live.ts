@@ -13,6 +13,7 @@ import { createPublicClient, createWalletClient, http, defineChain, parseAbi, ty
 import { privateKeyToAccount } from "viem/accounts";
 import { encodePolicyBytes } from "../packages/controller/src/commitment.ts";
 import { parsePackedPolicy } from "../workflow/src/policy.ts";
+import { banner, section, line, endSection, kv, hf, hfBar, money, OK, DOT, bold, dim, gray, green, blue, yellow } from "./ui.ts";
 
 const cfg = JSON.parse(readFileSync(new URL("../workflow/config.staging.json", import.meta.url).pathname, "utf8"));
 const ADMIN_KEY = process.env.KEEL_DEPLOY_KEY as Hex;
@@ -43,43 +44,79 @@ const sleep = (s: number) => new Promise((r) => setTimeout(r, s * 1000));
 const send = async (fn: string, args: unknown[] = []) => {
   const h = await admin.writeContract({ address: cfg.lending, abi: LENDING, functionName: fn as never, args: args as never });
   await pub.waitForTransactionReceipt({ hash: h });
-  console.log(`  ${fn}(${args.join(",")})  ${ES(h)}`);
+  line(`${OK} ${bold(fn)}(${args.join(",")})`);
+  line(`   ${dim(ES(h))}`);
   return h;
 };
 const hfOf = async () => (await pub.readContract({ address: cfg.lending, abi: LENDING, functionName: "getUserPosition", args: [PARTICIPANT] })).hf;
 
-console.log(`\n== KEEL live demo · lending ${cfg.lending} · participant ${PARTICIPANT}\n`);
+banner("KEEL · LIVE SCENARIO", "the enclave defends — this terminal only moves the market");
+section("STAGE");
+kv("lending", cfg.lending);
+kv("participant", PARTICIPANT);
+kv("price path", PATH.map((p) => "$" + p / 100).join(" → "));
+kv("round wait", `${WAIT_S}s (workflow reacts on its own tick)`);
+endSection();
 
 // 1. wait for the WORKFLOW to commit (its first tick posts commit + approvals)
-process.stdout.write("waiting for the workflow's commit-first-tick ");
+section("PHASE 1 · THE SEAL — waiting for the enclave's commit-first-tick");
+process.stdout.write("\x1b[38;5;69m│\x1b[0m  ");
 for (;;) {
   const c = await pub.readContract({ address: cfg.policyCommit, abi: PC, functionName: "commits", args: [PARTICIPANT] });
-  if (c.hash !== ZERO) { console.log(`\n  committed: ${c.hash} (block ${c.blockNumber}) — BEFORE start()\n`); break; }
-  process.stdout.write(".");
+  if (c.hash !== ZERO) {
+    console.log("");
+    line(`${OK} policy hash ${green(bold("SEALED"))} on-chain — ${bold("BEFORE start()")}`);
+    kv("commitment", c.hash);
+    kv("block", String(c.blockNumber));
+    break;
+  }
+  process.stdout.write(dim("· "));
   await sleep(10);
 }
+endSection();
 
 // 2. start + rounds
+section("PHASE 2 · THE STORM — price rounds");
 if ((await pub.readContract({ address: cfg.lending, abi: LENDING, functionName: "scenarioStartTime" })) === 0n) await send("start");
+let r = 0;
 for (const p of PATH) {
+  r++;
+  line("");
+  line(`${DOT} ${bold(`ROUND ${r}/${PATH.length}`)}  price → ${money(p)}`);
   await send("updatevETHPrice", [BigInt(p)]);
-  console.log(`  price → $${p / 100} · HF ${await hfOf()} · waiting ${WAIT_S}s for the workflow to react…`);
+  const pre = await hfOf();
+  line(`   HF ${hf(pre)}  ${hfBar(pre)}`);
+  line(`   ${gray(`waiting ${WAIT_S}s — the workflow decides alone…`)}`);
   await sleep(WAIT_S);
   await send("checkAllHF");
-  console.log(`  post-check HF ${await hfOf()} (100 = liquidation line)\n`);
+  const post = await hfOf();
+  line(`   HF ${hf(post)}  ${hfBar(post)}  ${post >= 108n ? green("safe") : post >= 103n ? yellow("watching") : green(bold("defended at the edge"))}`);
 }
+line("");
 await send("stop");
+endSection();
 
 // 3. reveal (participant key) — makes the run independently verifiable
+section("PHASE 3 · THE REVEAL — open the envelope");
 const pol = process.env.KEEL_POLICY, salt = process.env.KEEL_SALT as Hex | undefined;
 if (DEMO_KEY && pol && salt) {
   const demo = createWalletClient({ account: privateKeyToAccount(DEMO_KEY), chain: sepolia, transport: http(cfg.rpc_url) });
   const bytes = encodePolicyBytes(parsePackedPolicy(pol), cfg.controllerCodeHash);
   const h = await demo.writeContract({ address: cfg.policyCommit, abi: PC, functionName: "reveal", args: [bytes, salt] });
   await pub.waitForTransactionReceipt({ hash: h });
-  console.log(`reveal  ${ES(h)}`);
-} else console.log("skip reveal (set KEEL_DEMO_KEY + KEEL_POLICY + KEEL_SALT to auto-reveal)");
+  line(`${OK} ${bold("reveal(policy, salt)")} posted — the sealed policy is now public`);
+  line(`   ${dim(ES(h))}`);
+} else {
+  line(yellow("skip reveal — set KEEL_DEMO_KEY + KEEL_POLICY + KEEL_SALT to auto-reveal"));
+}
+endSection();
 
-console.log(`\nverify:\n  bun run verify --rpc ${cfg.rpc_url} --lending ${cfg.lending} \\
-    --policyCommit ${cfg.policyCommit} --receipts ${cfg.receipts} \\
-    --participant ${PARTICIPANT} --from ${cfg.startBlock}\n`);
+section("PHASE 4 · THE AUDIT — run this on camera");
+line(blue(bold("bun run verify")) + ` --rpc ${cfg.rpc_url} \\`);
+line(`    --lending ${cfg.lending} \\`);
+line(`    --policyCommit ${cfg.policyCommit} --receipts ${cfg.receipts} \\`);
+line(`    --participant ${PARTICIPANT} --from ${cfg.startBlock}`);
+line("");
+line(gray("expected verdict: ") + green(bold("ALL ROUNDS CONSISTENT")));
+endSection();
+console.log("");

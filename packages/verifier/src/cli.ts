@@ -38,31 +38,57 @@ async function main() {
   const salt = arg("salt") as Hex | undefined;
   const controllerCodeHash = arg("codehash") as Hex | undefined;
 
-  console.log(`\n=== KEEL verify · participant ${targets.participant} ===`);
+  // on-camera formatting — colors only when stdout is a TTY
+  const tty = process.stdout.isTTY || !!process.env.FORCE_COLOR;
+  const paint = (code: string) => (s: string) => (tty ? `\x1b[${code}m${s}\x1b[0m` : s);
+  const bold = paint("1"), dim = paint("2"), blue = paint("38;5;69"),
+    green = paint("38;5;42"), red = paint("38;5;203"), gray = paint("38;5;245");
+  const OKM = green("✓"), BADM = red("✕");
+  const mark = (ok?: boolean) => (ok === undefined ? gray("n/a") : ok ? OKM : BADM);
+  const W = 74;
+  const rule = blue("─".repeat(W));
+
+  console.log("");
+  console.log(blue("╔" + "═".repeat(W) + "╗"));
+  console.log(blue("║") + bold("  KEEL VERIFY — independent audit from public Sepolia logs".padEnd(W)) + blue("║"));
+  console.log(blue("╚" + "═".repeat(W) + "╝"));
+  console.log(gray("  participant  ") + targets.participant);
+
   const run = await reconstruct(targets);
-  console.log(
-    `commit ${run.commit ? run.commit.hash.slice(0, 12) + "… @block " + run.commit.blockNumber : "NONE"}` +
-      ` · signer ${run.commit?.signer ?? "?"} · reveal ${run.reveal ? "yes" : "no"}` +
-      ` · price levels ${run.prices.length} · receipts ${run.receipts.length}` +
-      ` · liquidated ${run.liquidated}`,
-  );
+  console.log(gray("  commit       ") + (run.commit ? `${run.commit.hash.slice(0, 20)}…  ${dim("@block " + run.commit.blockNumber)}` : red("NONE")));
+  console.log(gray("  signer       ") + (run.commit?.signer ?? "?"));
+  console.log(gray("  reveal       ") + (run.reveal ? green("yes — policy + salt public") : dim("not yet")));
+  console.log(gray("  observed     ") + `${run.prices.length} price levels · ${run.receipts.length} signed receipts · liquidated ${run.liquidated ? red("YES") : green("no")}`);
 
   const rep = await audit(run, { receiptsAddr: targets.receipts, policy, salt, controllerCodeHash });
 
-  console.log(`\ncommitment ${rep.commitmentOk === undefined ? "n/a" : rep.commitmentOk ? "OK ✓" : "MISMATCH ✕"}` +
-    ` · signers ${rep.signersOk ? "OK ✓" : "MISMATCH ✕"} · digests ${rep.digestsOk ? "OK ✓" : "MISMATCH ✕"}`);
+  console.log("\n" + rule);
+  console.log(
+    `  ${mark(rep.commitmentOk)} commitment = keccak(policyHash ‖ salt)   ` +
+    `${mark(rep.signersOk)} every signer = committed   ${mark(rep.digestsOk)} EIP-712 digests`,
+  );
+  console.log(rule);
 
   if (rep.rows.length) {
-    console.log(`\nrnd  price    HF     arm    target  emrg  acted  expect  ok`);
+    console.log(bold("\n  rnd   price     HF      arm     target   emrg  acted  expect   ok"));
+    console.log(dim("  " + "─".repeat(68)));
     for (const r of rep.rows) {
-      console.log(
-        `${String(r.round).padStart(2)}   ${String(r.price).padStart(6)}  ${hf(r.hfBpPre)}  ${hf(r.armBp)}  ${hf(r.targetBp)}` +
-          `   ${r.emergency ? "Y" : "·"}     ${r.acted ? "Y" : "·"}      ${r.expectedAct ? "Y" : "·"}     ${r.consistent ? "✓" : "✕"}`,
-      );
+      const row =
+        `  ${String(r.round).padStart(2, "0")}   ${("$" + (Number(r.price) / 100).toFixed(0)).padStart(6)}   ` +
+        `${hf(r.hfBpPre)}   ${blue(hf(r.armBp))}   ${dim(hf(r.targetBp))}     ` +
+        `${r.emergency ? "Y" : "·"}      ${r.acted ? bold("Y") : "·"}      ${r.expectedAct ? bold("Y") : "·"}     ` +
+        (r.consistent ? OKM : BADM);
+      console.log(row);
     }
   }
 
-  console.log(`\n${rep.verdict}\n`);
+  const good = rep.verdict === "ALL ROUNDS CONSISTENT";
+  console.log("");
+  const box = good ? green : rep.verdict === "NO REVEAL — RECEIPTS ONLY" ? gray : red;
+  console.log(box("┌" + "─".repeat(W) + "┐"));
+  console.log(box("│") + bold(`  ${good ? "✓" : "✕"} ${rep.verdict}`.padEnd(W)) + box("│"));
+  console.log(box("└" + "─".repeat(W) + "┘"));
+  console.log("");
   const failed =
     !rep.signersOk || !rep.digestsOk || rep.commitmentOk === false ||
     (rep.rows.length > 0 && !rep.roundsConsistent);
