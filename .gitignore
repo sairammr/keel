@@ -25,6 +25,10 @@ contracts/lib/
 # os
 .DS_Store
 
+# tooling artifacts
+.impeccable/
+*.tsbuildinfo
+
 # vercel
 .vercel
 

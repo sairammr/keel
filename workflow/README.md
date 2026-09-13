@@ -6,8 +6,8 @@ the lending position from **public chain data only**, decides via the shared con
 commitment plus EIP-712 action receipts. It never logs a policy value, salt, or threshold — the
 handler returns only a one-word status: `COMMITTED` / `IDLE` / `SAFE` / `DEFENDED`.
 
-Spec: KEEL build plan §3 (architecture), §4.2 (state reconstruction), §4.8 (handler pseudocode),
-§5 (contracts / commitment scheme).
+Spec: `docs/internal/PLAN.md` §3 (architecture), §4.2 (state reconstruction), §4.8 (handler
+pseudocode), §5 (contracts / commitment scheme).
 
 ## Files
 - `src/main.ts` — the handler + workflow registration (`handlerInTee`, or plain `handler` fallback).
