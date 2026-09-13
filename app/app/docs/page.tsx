@@ -178,25 +178,40 @@ export default function DocsPage() {
               href: "/replay",
               name: "Replay",
               what: "The same falling market, played against two defenders side by side: the official starter bot (fixed threshold) and Keel (sealed policy).",
-              use: "Pick a scenario, press PLAY, and watch the strip under each chart. That strip is the attacker's live estimate of the bot's trigger. The starter's estimate collapses to a point; Keel's stays wide. Switch the source to CHAIN to see Keel's real recorded Sepolia run instead, with every action linked to Etherscan.",
+              points: [
+                "Pick a scenario and press PLAY. Each chart shows one bot's health factor falling as the price drops; markers are its defense actions.",
+                "The colored strip under each chart is the attacker's live estimate of that bot's trigger. The starter's strip collapses to a point; Keel's stays wide.",
+                "The scorecards use the official challenge scoring: surviving matters most, spending less capital and acting less often matter too.",
+                "Switch the source to CHAIN to see Keel's real recorded Sepolia run, every action linked to Etherscan.",
+              ],
             },
             {
               href: "/hunter",
               name: "Hunter",
               what: "A real Bayesian attacker that watches both bots across every market and then tries to drain them.",
-              use: "Compare the “next-trigger band” numbers: how precisely the attacker can predict each bot's next move. Then press ATTACK to watch it tap the price at the starter's discovered trigger and milk its reserve. The ×1000 toggle scales the dollar figures to a realistically sized position.",
+              points: [
+                "The headline number is the “next-trigger band”: how precisely the attacker can predict each bot's next move. Smaller is worse for the defender.",
+                "The starter's band collapses to a point: its fixed trigger is found and stays found. Keel's band is floored by its per-level random jitter, no matter how long the Hunter watches.",
+                "Press ATTACK to watch the Hunter tap the price at the starter's discovered trigger, forcing spend after spend until the reserve is gone.",
+                "The ×1000 toggle scales the dollar figures to a realistically sized position, where this attack is worth real money.",
+              ],
             },
             {
               href: "/verify",
               name: "Verify",
               what: "The proof. Everything on this page is reconstructed live from Sepolia events by an independent verifier package.",
-              use: "Check the three green ticks: the commitment hash matches, every receipt's signer matches the committed signer, and every round's action matches the revealed policy. Every row links to the real transaction on Etherscan.",
+              points: [
+                "The verdict at the top is the whole story: ALL ROUNDS CONSISTENT means the sealed policy provably produced every action.",
+                "Section 1 is the commitment: the policy hash was posted on-chain before any action, so it could not be swapped after seeing the market.",
+                "Section 2 lists the signed receipts. Each signature recovers to the exact signer address committed up front.",
+                "Section 3 is the reveal audit: each round's trigger is recomputed from public price logs and checked against what the bot actually did. Every row links to Etherscan.",
+              ],
             },
             {
               href: "/pitch",
               name: "Pitch",
               what: "The 10-slide story for judges.",
-              use: "Arrow keys, scroll or the side dots step through the slides.",
+              points: ["Arrow keys, scroll or the side dots step through the slides."],
             },
           ].map((r, i, arr) => (
             <div
@@ -204,15 +219,22 @@ export default function DocsPage() {
               className={`p-5 ${i < arr.length - 1 ? "border-b" : ""}`}
               style={{ borderColor: "var(--color-ink)" }}
             >
-              <div className="flex items-baseline gap-3 mb-1.5">
+              <div className="flex items-baseline gap-3 mb-2">
                 <Link href={r.href} className="text-[15px] font-bold link-underline">
                   {r.name}
                 </Link>
                 <span className="text-[13px] text-[color:var(--color-muted)]">{r.what}</span>
               </div>
-              <p className="text-[13px] leading-relaxed text-[color:var(--color-ink2)] max-w-[75ch]">
-                {r.use}
-              </p>
+              <ul className="flex flex-col gap-1.5">
+                {r.points.map((p, k) => (
+                  <li key={k} className="flex gap-2.5 text-[13px] leading-relaxed max-w-[75ch]">
+                    <span className="mono text-[11px] pt-0.5 text-[color:var(--color-keel-ink)]">
+                      {k + 1}.
+                    </span>
+                    <span className="text-[color:var(--color-ink2)]">{p}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>

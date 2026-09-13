@@ -1,5 +1,4 @@
 import LiveOnChain from "@/components/LiveOnChain";
-import { PageGuide } from "@/components/PageGuide";
 import { reconstruct, audit, type AuditReport, type ReconstructedRun } from "keel-verifier";
 import { DEPLOYMENT, etherscanTx, etherscanAddr } from "@/lib/deployment";
 
@@ -57,14 +56,6 @@ export default async function VerifyPage({
         </p>
         <div className="rule" />
       </header>
-      <PageGuide
-        points={[
-          "The verdict at the top is the whole story: ALL ROUNDS CONSISTENT means the sealed policy provably produced every action.",
-          "Section 1 shows the commitment: the policy hash was posted on-chain before any action, so the policy could not be swapped after seeing the market.",
-          "Section 2 lists the signed receipts. Each one's signature recovers to the exact signer address that was committed up front.",
-          "Section 3 is the reveal audit: with the policy and salt now public, each round's trigger is recomputed from price logs and checked against what the bot actually did.",
-        ]}
-      />
 
       {/* live commit + receipt count (client read) */}
       <LiveOnChain />
