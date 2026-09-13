@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GlyphJitter } from "@/components/HeroViz";
+import { Deck } from "./Deck";
 import { etherscanTx, etherscanAddr } from "@/lib/deployment";
 
 export const metadata = { title: "KEEL — pitch" };
@@ -180,7 +181,7 @@ function ProofRow({
 
 export default function PitchPage() {
   return (
-    <div className="deck">
+    <Deck>
       {/* 01 — title */}
       <section className="slide" style={SLIDES_DIVIDER}>
         <span className="no">01 / 10</span>
@@ -462,6 +463,6 @@ export default function PitchPage() {
           </Link>
         </div>
       </section>
-    </div>
+    </Deck>
   );
 }

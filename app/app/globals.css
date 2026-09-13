@@ -291,12 +291,86 @@ input[type="range"] {
   border-bottom-color: var(--color-hunt);
 }
 
-/* pitch deck — full-bleed tall slides */
+/* pitch deck — full-bleed stepped slides (one at a time, no free scroll) */
 .deck {
   width: 100vw;
   position: relative;
   left: 50%;
   margin-left: -50vw;
+}
+.deck-viewport {
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+/* the deck page itself must not scroll — stepping is the only navigation */
+body:has(.deck-viewport) {
+  overflow: hidden;
+}
+.deck-track {
+  height: 100%;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.deck-slide {
+  height: 100%;
+}
+.deck-slide > .slide {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+.deck-ctl {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.deck-ctl button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.deck-ctl button:hover:not(:disabled) {
+  background: var(--color-keel);
+  color: #fff;
+  border-color: var(--color-keel);
+}
+.deck-ctl button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.deck-dots {
+  position: fixed;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.deck-dots button {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--color-ink);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.deck-dots button.on {
+  background: var(--color-keel);
+  border-color: var(--color-keel);
 }
 .slide {
   min-height: calc(100vh - 60px);
