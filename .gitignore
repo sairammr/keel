@@ -25,6 +25,9 @@ contracts/lib/
 # os
 .DS_Store
 
+# vercel
+.vercel
+
 # logs
 *.log
 
@@ -35,3 +38,4 @@ skills-lock.json
 workflow/src/.cre_build_tmp.js
 *.wasm
 .codex/
+.env*
