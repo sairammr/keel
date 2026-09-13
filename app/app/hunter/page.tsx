@@ -2,6 +2,7 @@ import { crossMarketIntel, runAttack, chainIntel } from "@/lib/hunter";
 import { KEEL_POLICY, demoSaltBytes } from "@/lib/policy";
 import { ALL_SCENARIOS } from "@/lib/scenarios";
 import { HunterView } from "./HunterView";
+import { PageGuide } from "@/components/PageGuide";
 
 // Server-side: real Bayesian inference (m1/m2) aggregated across the whole scenario suite,
 // a real controller-driven attack, AND the same inference over the real on-chain
@@ -17,20 +18,27 @@ export default async function HunterPage() {
   return (
     <div className="viewin flex flex-col gap-6">
       <header>
-        <div className="eyebrow mb-3">[02] hunter</div>
+        <div className="eyebrow mb-3">tour · step 2 of 3</div>
         <h1 className="display text-[clamp(30px,4vw,46px)]">
           The <span className="it">adversary.</span>
         </h1>
         <p className="lead mt-4 text-[14.5px]">
-          The Hunter never sees the policy. From public{" "}
-          <span className="mono">(HF, acted?)</span> observations it runs the real M1
-          (fixed-threshold) and M2 (threshold + jitter) posteriors — over{" "}
-          {ALL_SCENARIOS.length} engine markets, or over Keel&apos;s real Sepolia logs.
-          The starter&apos;s number collapses to a point; Keel&apos;s stays open by at
-          least its jitter, and forcing it means crashing price to the floor.
+          The Hunter is a real attacker model. It never sees either bot&apos;s policy:
+          it only watches public data, at each price level noting the health factor
+          and whether the bot acted, exactly what a stop-hunter on mainnet would see.
+          From that alone it estimates each bot&apos;s trigger, then attacks.
         </p>
         <div className="rule" />
       </header>
+      <PageGuide
+        points={[
+          "The headline number is the “next-trigger band”: how precisely the attacker can predict the bot's next move. Smaller is worse for the defender.",
+          "The starter's band collapses to a point: its fixed trigger is found and stays found. Keel's band is floored by its per-level random jitter, no matter how long the Hunter watches.",
+          "Press ATTACK to watch the Hunter tap the price at the starter's discovered trigger, forcing spend after spend until the reserve is gone.",
+          "The ×1000 toggle scales the dollar figures to a realistically sized position, where this attack is worth real money.",
+        ]}
+        next={{ href: "/verify", label: "Verify, the on-chain proof" }}
+      />
       <HunterView
         intel={intel}
         attack={attack}

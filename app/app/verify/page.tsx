@@ -1,4 +1,5 @@
 import LiveOnChain from "@/components/LiveOnChain";
+import { PageGuide } from "@/components/PageGuide";
 import { reconstruct, audit, type AuditReport, type ReconstructedRun } from "keel-verifier";
 import { DEPLOYMENT, etherscanTx, etherscanAddr } from "@/lib/deployment";
 
@@ -45,20 +46,25 @@ export default async function VerifyPage({
   return (
     <div className="viewin flex flex-col gap-6">
       <header>
-        <div className="eyebrow mb-3">[03] verify</div>
+        <div className="eyebrow mb-3">tour · step 3 of 3</div>
         <h1 className="display text-[clamp(30px,4vw,46px)]">
           Commit. Receipts. <span className="it">Reveal.</span>
         </h1>
         <p className="lead mt-4 text-[14.5px]">
-          Every value below is reconstructed from Sepolia events by{" "}
-          <span className="mono">packages/verifier</span> — the commitment is read from{" "}
-          <span className="mono">PolicyCommit</span>, each receipt&apos;s signer is
-          recovered from the <span className="mono">post()</span> tx calldata, the
-          EIP-712 digest is recomputed, and every round&apos;s action is re-checked
-          against the revealed policy. No engine, no placeholder data.
+          This is the proof. Nothing here comes from a simulation: every value is
+          reconstructed live from Sepolia events by an independent verifier package,
+          and every row links to its real transaction on Etherscan.
         </p>
         <div className="rule" />
       </header>
+      <PageGuide
+        points={[
+          "The verdict at the top is the whole story: ALL ROUNDS CONSISTENT means the sealed policy provably produced every action.",
+          "Section 1 shows the commitment: the policy hash was posted on-chain before any action, so the policy could not be swapped after seeing the market.",
+          "Section 2 lists the signed receipts. Each one's signature recovers to the exact signer address that was committed up front.",
+          "Section 3 is the reveal audit: with the policy and salt now public, each round's trigger is recomputed from price logs and checked against what the bot actually did.",
+        ]}
+      />
 
       {/* live commit + receipt count (client read) */}
       <LiveOnChain />

@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/", label: "Thesis", ix: "00" },
-  { href: "/replay", label: "Replay", ix: "01" },
-  { href: "/hunter", label: "Hunter", ix: "02" },
-  { href: "/verify", label: "Verify", ix: "03" },
-  { href: "/pitch", label: "Pitch", ix: "04" },
+  { href: "/", label: "Overview" },
+  { href: "/replay", label: "Replay" },
+  { href: "/hunter", label: "Hunter" },
+  { href: "/verify", label: "Verify" },
+  { href: "/docs", label: "Docs" },
+  { href: "/pitch", label: "Pitch" },
 ];
 
 export function NavLinks() {
@@ -21,18 +22,12 @@ export function NavLinks() {
           <Link
             key={n.href}
             href={n.href}
-            className="flex items-center gap-2 px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors"
+            className="px-3 py-2 text-[13.5px] font-medium whitespace-nowrap transition-colors"
             style={{
               background: on ? "var(--color-keel)" : "transparent",
               color: on ? "#fff" : "var(--color-muted)",
             }}
           >
-            <span
-              className="mono text-[10.5px]"
-              style={{ color: on ? "rgba(255,255,255,.7)" : "var(--color-line2)" }}
-            >
-              {n.ix}
-            </span>
             {n.label}
           </Link>
         );

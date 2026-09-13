@@ -134,7 +134,7 @@ function ArchViz() {
       {/* status word out the bottom */}
       <path d="M 326 186 L 326 214 M 321 207 L 326 214 L 331 207" fill="none" stroke={ink} strokeWidth="1.3" />
       <text x="326" y="234" textAnchor="middle" fontSize="9.5" fontFamily={mono} fill={ink}>
-        handler returns one word — IDLE · SAFE · DEFENDED — nothing numeric leaves the enclave
+        handler returns one word: IDLE · SAFE · DEFENDED. nothing numeric leaves the enclave
       </text>
     </svg>
   );
@@ -184,28 +184,28 @@ export default function PitchPage() {
     <Deck>
       {/* 01 — title */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">01 / 10</span>
         <div className="eyebrow mb-6">ethonline 2026 · chainlink cre · best confidential workflow + liquidation protection challenge</div>
         <h1 className="display text-[clamp(56px,9vw,130px)]">
           KEEL<span className="it">.</span>
         </h1>
-        <p className="lead mt-6 text-[19px] max-w-[46ch]">
-          The starter hides the number. Keel hides the number, hides what the number
-          will do next, and <strong>proves the number never changed</strong>.
+        <p className="lead mt-6 text-[19px] max-w-[48ch]">
+          A liquidation-protection bot whose trigger cannot be found by watching it,
+          and which <strong>proves on-chain that it never changed its plan</strong>.
         </p>
       </section>
 
       {/* 02 — problem */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">02 / 10</span>
         <div className="eyebrow mb-4">the problem</div>
-        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[20ch]">
-          Every defense bot broadcasts its own trigger.
+        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[22ch]">
+          Watching a defense bot is enough to rob it.
         </h2>
-        <p className="lead mt-5">
-          Action or inaction at each price is one bit of a binary search. Three pushes
-          locate a fixed threshold to ±0.005 HF — a <strong>$9 price window</strong>.
-          A located threshold plus a public reserve is a drain plan, not a defense.
+        <p className="lead mt-5 max-w-[58ch]">
+          A protection bot defends a loan when its health factor falls to a secret
+          trigger. But every action, and every silence, is public. Each price level
+          answers one question: is the trigger above or below here? Three pushes
+          locate a fixed trigger to a <strong>$9 price window</strong>. A found
+          trigger plus a public reserve is not a defense. It is a drain plan.
         </p>
         <div className="mt-8">
           <BinarySearchViz />
@@ -218,14 +218,13 @@ export default function PitchPage() {
 
       {/* 03 — the field */}
       <section className="slide band" style={SLIDES_DIVIDER}>
-        <span className="no">03 / 10</span>
         <div className="eyebrow mb-4">the playing field</div>
         <h2 className="display text-[clamp(40px,7vw,96px)]">$205.</h2>
         <p className="lead mt-5 max-w-[52ch]">
-          Health factor is a straight line in price: HF = price / 1794.87. The entire
-          game — opening health, every trigger, liquidation — lives between $2,000 and
-          $1,795. Hide where you act inside that window, and keep it hidden under
-          observation, or lose.
+          In this challenge, health factor is just price in disguise:
+          HF = price / 1794.87. The position opens at $2,000 and dies at $1,795.
+          Everything, every trigger, every attack, every defense, happens inside that
+          $205 window. Hide where you act inside it, while being watched, or lose.
         </p>
         <div className="mono mt-8 text-[13px]" style={{ color: "rgba(255,255,255,.75)" }}>
           HF 1.114 ⇔ $2,000 · HF 1.03 ⇔ $1,849 · HF 1.00 ⇔ $1,795
@@ -234,19 +233,20 @@ export default function PitchPage() {
 
       {/* 04 — fix 1 */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">04 / 10</span>
         <div className="grid gap-10 md:grid-cols-[1.2fr_0.8fr] items-center">
           <div>
-            <div className="eyebrow mb-4">fix one — secrecy that survives observation</div>
+            <div className="eyebrow mb-4">fix one · a trigger that cannot be located</div>
             <h2 className="display text-[clamp(30px,4.6vw,56px)]">
-              The tripwire <span className="it">moves.</span>
+              The tripwire <span className="it" style={{ lineHeight: 1.1 }}>moves.</span>
             </h2>
             <p className="lead mt-5">
-              trigger = clamp(base + k·σ + jitter(HMAC(salt, level))). One fresh draw per
-              price level, shifted <strong>only upward</strong> — randomness can make Keel
-              act earlier, never later, so it never costs survival. No sequence of
-              observations narrows the base below the jitter width. Non-invertible, by
-              construction.
+              Keel re-draws its trigger at every price level: a secret base, a
+              volatility cushion, and a random offset derived from a secret salt.
+              The offset is <strong>upward only</strong>, so randomness can make Keel
+              act earlier but never later. It never costs survival. And because each
+              level gets a fresh, independent draw, watching forever still leaves the
+              base unknown to the full width of the offset. The algorithm is public;
+              the secrecy lives entirely in the salt.
             </p>
           </div>
           <div className="flex justify-center scale-[2.2] origin-center py-10">
@@ -257,16 +257,17 @@ export default function PitchPage() {
 
       {/* 05 — fix 2 */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">05 / 10</span>
-        <div className="eyebrow mb-4">fix two — secrecy you don&apos;t have to trust</div>
+        <div className="eyebrow mb-4">fix two · secrecy you don&apos;t have to trust</div>
         <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[18ch]">
           Sealed envelope, opened after the match.
         </h2>
-        <p className="lead mt-5">
-          Before the scenario starts, keccak(policy ‖ salt) goes on-chain. Every defense
-          carries an EIP-712 receipt signed by a key derived inside the enclave. Reveal
-          afterward, and anyone recomputes every round from public logs. That&apos;s the
-          difference between <em>private</em> and <strong>provably unchanged</strong>.
+        <p className="lead mt-5 max-w-[58ch]">
+          Before the scenario starts, a hash of the whole policy goes on-chain: a
+          sealed envelope the referee holds. Every defense then carries a receipt
+          signed by a key that only exists inside the enclave. Afterward, Keel opens
+          the envelope, and anyone can recompute every round from public logs and
+          check every action against the sealed policy. That is the difference
+          between <em>private</em> and <strong>provably unchanged</strong>.
         </p>
         <div className="mt-10">
           <PipelineViz />
@@ -275,17 +276,16 @@ export default function PitchPage() {
 
       {/* 06 — architecture */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">06 / 10</span>
-        <div className="eyebrow mb-4">architecture — chainlink cre</div>
+        <div className="eyebrow mb-4">architecture · chainlink cre</div>
         <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[20ch]">
           The policy never leaves the enclave.
         </h2>
         <p className="lead mt-5 max-w-[58ch]">
-          Two triggers wake the workflow — a 60s cron heartbeat and a{" "}
-          <span className="mono">PriceUpdate</span> log trigger for instant reaction. The
-          handler runs in a TEE, pulls policy, salt, RPC and signer key from Vault DON
-          secrets, reads the chain in one batched call, defends when armed, and reports
-          a single status word.
+          Two triggers wake the workflow: a 60-second heartbeat and an instant
+          reaction to each on-chain price update. The handler runs in an AWS Nitro
+          enclave, pulls its four secrets from the Vault DON, reads the chain in one
+          batched call, defends when needed, and reports a single word. No number
+          ever comes out.
         </p>
         <div className="mt-9">
           <ArchViz />
@@ -294,16 +294,20 @@ export default function PitchPage() {
 
       {/* 07 — the attacker */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">07 / 10</span>
-        <div className="eyebrow mb-4">we shipped the attacker</div>
-        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[20ch]">
-          A real Bayesian hunter. It wins against the starter. It loses to Keel.
+        <div className="eyebrow mb-4">we shipped the attacker too</div>
+        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[22ch]">
+          A real Bayesian hunter. It finds the starter. It never finds Keel.
         </h2>
-        <div className="grid sm:grid-cols-3 border mt-9" style={{ borderColor: "var(--color-ink)" }}>
+        <p className="lead mt-5 max-w-[58ch]">
+          The Hunter watches only public data and infers where each bot&apos;s trigger
+          must be. The numbers below are how precisely it can predict the next
+          trigger after watching everything.
+        </p>
+        <div className="grid sm:grid-cols-3 border mt-8" style={{ borderColor: "var(--color-ink)" }}>
           {[
-            ["starter, next trigger", "0 bp", "located in 3 observations — stop-huntable forever", "var(--color-danger)"],
-            ["keel, next trigger", "≥ 300 bp", "fresh draw every level — floored by jitter, no matter how long it watches", "var(--color-keel)"],
-            ["live on sepolia", "CONSISTENT", "commit → 2 signed defenses → reveal → every round re-verified", "var(--color-ok)"],
+            ["starter, next trigger", "0 bp", "the fixed threshold is located in 3 observations and stays located: stop-huntable forever", "var(--color-danger)"],
+            ["keel, next trigger", "≥ 300 bp", "a fresh draw at every price level keeps the band at least the jitter width, no matter how long it watches", "var(--color-keel)"],
+            ["live on sepolia", "CONSISTENT", "commit, then 2 signed defenses, then reveal: every round independently re-verified", "var(--color-ok)"],
           ].map(([k, v, s, c], i) => (
             <div key={k as string} className={`p-6 ${i < 2 ? "sm:border-r border-b sm:border-b-0" : ""}`} style={{ borderColor: "var(--color-ink)" }}>
               <div className="eyebrow">{k}</div>
@@ -315,17 +319,15 @@ export default function PitchPage() {
           ))}
         </div>
         <p className="mono mt-6 text-[12px] text-[color:var(--color-muted)]">
-          the hunter&apos;s posterior over keel&apos;s trigger is floored by the jitter width —
-          watching every action forever still leaves a ≥300 bp band. try it live on /hunter.
+          run the attack yourself on /hunter
         </p>
       </section>
 
       {/* 08 — results */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">08 / 10</span>
-        <div className="eyebrow mb-4">results — the 5 official challenge scenarios</div>
-        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[20ch]">
-          Zero liquidations. Full continuity. Least capital.
+        <div className="eyebrow mb-4">results · the 5 official challenge scenarios</div>
+        <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[22ch]">
+          Zero liquidations. Least capital spent. And unhuntable.
         </h2>
         <div className="overflow-x-auto mt-9 border" style={{ borderColor: "var(--color-ink)" }}>
           <table className="w-full mono text-[13px]" style={{ minWidth: 640 }}>
@@ -357,18 +359,18 @@ export default function PitchPage() {
             </tbody>
           </table>
         </div>
-        <p className="mono mt-6 text-[12px] text-[color:var(--color-muted)] max-w-[80ch]">
-          exact README price paths, engine = byte-proven ContractMirror. per scenario: gradual 80.23 ·
-          crash 79.53 · wick 83.56 · two-stage 80.28 · safe-vol 83.78 — loan continuity a full 20/20 in
-          every one. the committed policy beats the tuned grid winner on the official paths, survives
-          with the least capital of any surviving strategy, and do-nothing liquidates in all five.
+        <p className="mt-6 text-[13px] text-[color:var(--color-muted)] max-w-[70ch] leading-relaxed">
+          These are the exact price paths from the official README, run through a
+          contract mirror proven byte-for-byte against the deployed contract. The
+          sealed policy survives all five, keeps full loan continuity (20/20 in every
+          scenario), and spends less capital than any other surviving strategy. Doing
+          nothing liquidates in all five. Confidentiality cost nothing.
         </p>
       </section>
 
       {/* 09 — on-chain proof */}
       <section className="slide" style={SLIDES_DIVIDER}>
-        <span className="no">09 / 10</span>
-        <div className="eyebrow mb-4">on-chain, right now — ethereum sepolia</div>
+        <div className="eyebrow mb-4">on-chain, right now · ethereum sepolia</div>
         <h2 className="display text-[clamp(30px,4.6vw,56px)] max-w-[20ch]">
           Joined. Sealed before start. <span className="it">Check us.</span>
         </h2>
@@ -379,7 +381,7 @@ export default function PitchPage() {
             href={etherscanAddr(PROD.challenge)}
           />
           <ProofRow
-            label="keel participant — joined #8"
+            label="keel participant · joined #8"
             value={PROD.participant}
             href={etherscanAddr(PROD.participant)}
           />
@@ -403,24 +405,24 @@ export default function PitchPage() {
             ok
           />
         </div>
-        <p className="mono mt-6 text-[12px] text-[color:var(--color-muted)] max-w-[76ch]">
-          the commit lands at block {PROD.commitBlock} — before the scenario starts. whatever the
-          market does, the policy that defends is provably the one sealed here. reveal comes after
-          scores publish; the /verify page then re-derives every round from public logs.
+        <p className="mt-6 text-[13px] text-[color:var(--color-muted)] max-w-[70ch] leading-relaxed">
+          The commitment landed at block {PROD.commitBlock}, before the official
+          scenario starts. Whatever the market does now, the policy that defends is
+          provably the one sealed here. The salt stays sealed until scores publish;
+          then the /verify page re-derives every round from public logs.
         </p>
       </section>
 
       {/* 10 — tracks + close */}
       <section className="slide band">
-        <span className="no">10 / 10</span>
         <div className="eyebrow mb-4">the tracks</div>
         <h2 className="display text-[clamp(34px,5.4vw,72px)] max-w-[16ch]">
-          Private smart contracts you can still audit.
+          Private strategies you can still audit.
         </h2>
         <div className="grid md:grid-cols-2 gap-8 mt-9 max-w-[900px]">
           {[
-            ["BEST CONFIDENTIAL WORKFLOW", "handlerInTee on AWS Nitro · 4 Vault DON secrets · cron + log trigger · one batched read · one-word status — and secrecy you can verify: commit → EIP-712 receipts signed in-enclave → reveal."],
-            ["LIQUIDATION PROTECTION CHALLENGE", "0 liquidations and 20/20 loan continuity on all 5 official scenarios, least capital of any surviving strategy — with a trigger no observer can locate."],
+            ["BEST CONFIDENTIAL WORKFLOW", "handlerInTee on AWS Nitro · 4 Vault DON secrets · cron + log trigger · one batched read · one-word status. And secrecy you can verify: commit, in-enclave signed receipts, reveal."],
+            ["LIQUIDATION PROTECTION CHALLENGE", "0 liquidations and 20/20 loan continuity on all 5 official scenarios, least capital of any surviving strategy, with a trigger no observer can locate."],
           ].map(([t, b]) => (
             <div key={t} className="border p-5" style={{ borderColor: "rgba(255,255,255,.35)" }}>
               <div className="mono text-[12px] mb-2" style={{ color: "#fff" }}>{t}</div>
@@ -434,10 +436,10 @@ export default function PitchPage() {
               REAL, TODAY
             </div>
             <ul className="flex flex-col gap-2 text-[14px]" style={{ color: "rgba(255,255,255,.9)" }}>
-              <li>· joined the official challenge — participant #8, policy sealed on-chain pre-start</li>
-              <li>· CRE confidential workflow in a TEE — both triggers simulate green</li>
-              <li>· live Sepolia run: commit → signed receipts → reveal → ALL ROUNDS CONSISTENT</li>
-              <li>· the Hunter adversary + independent verifier, byte-proven contract mirror</li>
+              <li>· joined the official challenge as participant #8, policy sealed on-chain pre-start</li>
+              <li>· CRE confidential workflow in a TEE; both triggers simulate green</li>
+              <li>· live Sepolia run: commit, signed receipts, reveal, ALL ROUNDS CONSISTENT</li>
+              <li>· a real Bayesian adversary + independent verifier, byte-proven contract mirror</li>
             </ul>
           </div>
           <div>
@@ -445,9 +447,9 @@ export default function PitchPage() {
               HONESTLY PENDING
             </div>
             <ul className="flex flex-col gap-2 text-[14px]" style={{ color: "rgba(255,255,255,.9)" }}>
-              <li>· DON deployment — early-access queue; simulation is what&apos;s judged</li>
-              <li>· the official scenario window — runs post-deadline; our commit already binds it</li>
-              <li>· receipt key is salt-derived, not attestation-bound — stated plainly</li>
+              <li>· DON deployment: early-access queue; simulation is what&apos;s judged</li>
+              <li>· the official scenario window runs post-deadline; our commit already binds it</li>
+              <li>· receipt key is salt-derived, not attestation-bound; stated plainly</li>
             </ul>
           </div>
         </div>
@@ -458,8 +460,8 @@ export default function PitchPage() {
           <Link href="/hunter" className="btn ghost sm" style={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}>
             Attack it
           </Link>
-          <Link href="/" className="btn ghost sm" style={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}>
-            Back to keel
+          <Link href="/docs" className="btn ghost sm" style={{ color: "#fff", borderColor: "rgba(255,255,255,.4)" }}>
+            Read the docs
           </Link>
         </div>
       </section>
